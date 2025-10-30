@@ -1,6 +1,8 @@
 import os
 import torch
-from model import TimeBridge
+from model import TimeBridge, iTransformer,CycleNet
+
+from model.Statistics_prediction import Statistics_prediction
 
 
 class Exp_Basic(object):
@@ -8,6 +10,8 @@ class Exp_Basic(object):
         self.args = args
         self.model_dict = {
             'TimeBridge': TimeBridge,
+            'iTransformer': iTransformer,
+            'CycleNet': CycleNet,
         }
         self.device = self._acquire_device()
         self.model = self._build_model().to(self.device)

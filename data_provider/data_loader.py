@@ -427,3 +427,227 @@ class Dataset_Solar(Dataset):
 
     def inverse_transform(self, data):
         return self.scaler.inverse_transform(data)
+
+
+class solar_data(Dataset):
+    def __init__(self, root_path, flag='train', size=None,
+                 features='S', data_path='Solar_Power.xlsx',
+                 target='data', scale=True, timeenc=0, freq='h', seasonal_patterns=None,cycle=None):
+        # size [seq_len, label_len, pred_len]
+        # info
+        if size == None:
+            self.seq_len = 24 * 4 * 4
+            self.label_len = 24 * 4
+            self.pred_len = 24 * 4
+        else:
+            self.seq_len = size[0]
+            self.label_len = size[1]
+            self.pred_len = size[2]
+        # init
+        assert flag in ['train', 'test', 'val']
+        type_map = {'train': 0, 'val': 1, 'test': 2}
+        self.set_type = type_map[flag]
+
+        self.features = features
+        self.target = target
+        self.scale = scale
+        self.timeenc = timeenc
+        self.freq = freq
+        self.cycle = cycle
+
+        self.root_path = root_path
+        self.data_path = data_path
+        self.__read_data__()
+
+    def __read_data__(self):
+        self.scaler = StandardScaler()
+        df_raw = pd.read_excel(os.path.join(self.root_path,
+                                          self.data_path))
+        #将数据发电量放在最后一列
+        col = df_raw.pop("data")
+        df_raw['data'] = col
+
+        # 代表左右边界
+        border1s = [0, 8 * 30 * 24 - self.seq_len, 10 * 30 * 24 - self.seq_len]
+        border2s = [8 * 30 * 24, 10 * 30 * 24, 12 * 30 * 24]
+        border1 = border1s[self.set_type]
+        border2 = border2s[self.set_type]
+
+        if self.features == 'M' or self.features == 'MS':
+            cols_data = df_raw.columns[1:]  # 代表读取不包含第一列的所有列，第一列是时间
+            df_data = df_raw[cols_data]
+        elif self.features == 'S':
+            #测试问题
+            print("target is:", self.target)
+            df_data = df_raw[[self.target]]  # df_raw[[self.target]]返回一个DataFrame，即只包含一列的Pandas数据，
+            # 而df_raw[self.target]返回一个Pandas Series。
+        print("self.scale:", self.scale)
+        if self.scale:
+            train_data = df_data[border1s[0]:border2s[0]]
+            self.scaler.fit(train_data.values)
+            data = self.scaler.transform(df_data.values)
+        else:
+            data = df_data.values  # .value返回一个二维的numpy数组
+
+        df_stamp = df_raw[['date']][border1:border2]
+        #重新处理太阳能中date中的格式
+        df_stamp['date'] = pd.to_datetime(df_stamp.date,format='%Y/%m/%D %H:%M')
+        if self.timeenc == 0:
+            df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
+            df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
+            df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
+            df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
+            data_stamp = df_stamp.drop(['date'], 1).values
+        elif self.timeenc == 1:
+            '''
+                     在进入该分支时，我们选择 arg.embed 为 timeF，这意味着我们要对时间信息进行 
+                     编码时间信息。freq "应该是最小的时间步长，有以下选项 
+                      选项：[s:秒，t:分钟，h:小时，d:日，b:工作日，w:周，m:月]，也可以使用更详细的 freq，如 15 分钟或 3 小时')
+                     因此，你应该检查数据的时间步长，并设置 “freq ”参数。
+                     在对 time_features 进行编码后，每种日期信息格式将被编码成 
+                     一个列表，每个元素表示该时间点的相对位置
+                     (例如，周日、月日、日小时），并且每个元素都在范围[-0.5, 0.5]内进行归一化。  
+                     '''
+            data_stamp = time_features(pd.to_datetime(df_stamp['date'].values), freq=self.freq)
+            data_stamp = data_stamp.transpose(1, 0)
+
+        self.data_x = data[border1:border2]
+        self.data_y = data[border1:border2]
+
+
+        self.data_stamp = data_stamp
+
+        # add cycle
+        self.cycle_index = (np.arange(len(data)) % self.cycle)[border1:border2]
+
+    def __getitem__(self, index):
+        s_begin = index
+        s_end = s_begin + self.seq_len
+        r_begin = s_end - self.label_len
+        r_end = r_begin + self.label_len + self.pred_len
+
+        seq_x = self.data_x[s_begin:s_end]
+        seq_y = self.data_y[r_begin:r_end]
+        seq_x_mark = self.data_stamp[s_begin:s_end]
+        seq_y_mark = self.data_stamp[r_begin:r_end]
+
+        cycle_index = torch.tensor(self.cycle_index[s_end])
+
+        return seq_x, seq_y, seq_x_mark, seq_y_mark,cycle_index
+
+    def __len__(self):
+        return len(self.data_x) - self.seq_len - self.pred_len + 1
+
+    def inverse_transform(self, data):
+        return self.scaler.inverse_transform(data)
+
+
+## TODO add cycle
+class Dataset_Pred(Dataset):
+    def __init__(self, root_path, flag='pred', size=None,
+                 features='S', data_path='ETTh1.csv',
+                 target='OT', scale=True, inverse=False, timeenc=0, freq='15min', cols=None,cycle=None):
+        # size [seq_len, label_len, pred_len]
+        # info
+        if size == None:
+            self.seq_len = 24 * 4 * 4
+            self.label_len = 24 * 4
+            self.pred_len = 24 * 4
+        else:
+            self.seq_len = size[0]
+            self.label_len = size[1]
+            self.pred_len = size[2]
+        # init
+        assert flag in ['pred']
+
+        self.features = features
+        self.target = target
+        self.scale = scale
+        self.inverse = inverse
+        self.timeenc = timeenc
+        self.freq = freq
+        self.cols = cols
+        self.cycle = cycle
+        self.root_path = root_path
+        self.data_path = data_path
+        self.__read_data__()
+
+    def __read_data__(self):
+        self.scaler = StandardScaler()
+        df_raw = pd.read_csv(os.path.join(self.root_path,
+                                          self.data_path))
+        '''
+        df_raw.columns: ['date', ...(other features), target feature]
+        '''
+        if self.cols:
+            cols = self.cols.copy()
+            cols.remove(self.target)
+        else:
+            cols = list(df_raw.columns)
+            cols.remove(self.target)
+            cols.remove('date')
+        df_raw = df_raw[['date'] + cols + [self.target]]
+        border1 = len(df_raw) - self.seq_len
+        border2 = len(df_raw)
+
+        if self.features == 'M' or self.features == 'MS':
+            cols_data = df_raw.columns[1:]
+            df_data = df_raw[cols_data]
+        elif self.features == 'S':
+            df_data = df_raw[[self.target]]
+
+        if self.scale:
+            self.scaler.fit(df_data.values)
+            data = self.scaler.transform(df_data.values)
+        else:
+            data = df_data.values
+
+        tmp_stamp = df_raw[['date']][border1:border2]
+        tmp_stamp['date'] = pd.to_datetime(tmp_stamp.date)
+        pred_dates = pd.date_range(tmp_stamp.date.values[-1], periods=self.pred_len + 1, freq=self.freq)
+
+        df_stamp = pd.DataFrame(columns=['date'])
+        df_stamp.date = list(tmp_stamp.date.values) + list(pred_dates[1:])
+        if self.timeenc == 0:
+            df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
+            df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
+            df_stamp['weekday'] = df_stamp.date.apply(lambda row: row.weekday(), 1)
+            df_stamp['hour'] = df_stamp.date.apply(lambda row: row.hour, 1)
+            df_stamp['minute'] = df_stamp.date.apply(lambda row: row.minute, 1)
+            df_stamp['minute'] = df_stamp.minute.map(lambda x: x // 15)
+            data_stamp = df_stamp.drop(['date'], 1).values
+        elif self.timeenc == 1:
+            data_stamp = time_features(pd.to_datetime(df_stamp['date'].values), freq=self.freq)
+            data_stamp = data_stamp.transpose(1, 0)
+
+        self.data_x = data[border1:border2]
+        if self.inverse:
+            self.data_y = df_data.values[border1:border2]
+        else:
+            self.data_y = data[border1:border2]
+        self.data_stamp = data_stamp
+
+        # add cycle
+        self.cycle_index = (np.arange(len(data)) % self.cycle)[border1:border2]
+
+    def __getitem__(self, index):
+        s_begin = index
+        s_end = s_begin + self.seq_len
+        r_begin = s_end - self.label_len
+        r_end = r_begin + self.label_len + self.pred_len
+
+        seq_x = self.data_x[s_begin:s_end]
+        if self.inverse:
+            seq_y = self.data_x[r_begin:r_begin + self.label_len]
+        else:
+            seq_y = self.data_y[r_begin:r_begin + self.label_len]
+        seq_x_mark = self.data_stamp[s_begin:s_end]
+        seq_y_mark = self.data_stamp[r_begin:r_end]
+
+        return seq_x, seq_y, seq_x_mark, seq_y_mark
+
+    def __len__(self):
+        return len(self.data_x) - self.seq_len + 1
+
+    def inverse_transform(self, data):
+        return self.scaler.inverse_transform(data)

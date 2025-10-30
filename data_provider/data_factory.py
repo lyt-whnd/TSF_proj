@@ -1,4 +1,4 @@
-from data_provider.data_loader import Dataset_ETT_hour, Dataset_ETT_minute, Dataset_Custom, Dataset_Solar, Dataset_PEMS
+from data_provider.data_loader import Dataset_ETT_hour, Dataset_ETT_minute, Dataset_Custom, Dataset_Solar, Dataset_PEMS,Dataset_Pred,solar_data
 from torch.utils.data import DataLoader
 
 data_dict = {
@@ -9,6 +9,7 @@ data_dict = {
     'Solar': Dataset_Solar,
     'PEMS': Dataset_PEMS,
     'custom': Dataset_Custom,
+    'solar_data': solar_data,
 }
 
 
@@ -21,6 +22,12 @@ def data_provider(args, flag):
         drop_last = False
         batch_size = 1
         freq = args.freq
+    elif flag == 'pred':
+        shuffle_flag = False
+        drop_last = False
+        batch_size = 1
+        freq = args.freq
+        Data = Dataset_Pred
     else:
         shuffle_flag = True
         drop_last = True
@@ -36,7 +43,8 @@ def data_provider(args, flag):
         target=args.target,
         timeenc=timeenc,
         freq=freq,
-        seasonal_patterns=args.seasonal_patterns
+        seasonal_patterns=args.seasonal_patterns,
+        cycle=args.cycle
     )
     print(flag, len(data_set))
     data_loader = DataLoader(
