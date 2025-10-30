@@ -88,6 +88,8 @@ if __name__ == '__main__':
     #parser.add_argument('--activation', type=str, default='gelu', help='activation')
     #parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
     parser.add_argument('--do_predict', action='store_true', help='whether to predict unseen future data')
+    parser.add_argument('--use_norm',type=int, default=1, help='whether to use normalization or not')
+    parser.add_argument('--class_strategy', type=str, default='projection', help='projection/average/cls_token')
 
     # statistics prediction module config
     parser.add_argument('--station_type', type=str, default='adaptive')
