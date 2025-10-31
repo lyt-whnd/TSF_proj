@@ -326,10 +326,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
     def test(self, setting, test=0,epoch=None):
         test_data, test_loader = self._get_data(flag='test')
-        if test:
-            print('loading model')
-            self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint.pth')))
+        # if test:
+        #     print('loading model')
+        #     self.model.load_state_dict(torch.load(os.path.join('./checkpoints/' + setting, 'checkpoint.pth')))
+        device = (
+            torch.device("mps") if torch.backends.mps.is_available()
+            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        )
 
+        if test:
+            print(f'loading model on {device}')
+            checkpoint_path = os.path.join('./checkpoints/' + setting, 'checkpoint.pth')
+            self.model.load_state_dict(torch.load(checkpoint_path, map_location=device))
         preds = []
         trues = []
         inputx = []
@@ -404,23 +412,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 preds.append(pred)
                 trues.append(true)
 
+                if i % 20 == 0:
+                    input = batch_x.detach().cpu().numpy()
+                    gt = np.concatenate((input[0, :, -1], true[0, :, -1]), axis=0)
+                    pd = np.concatenate((input[0, :, -1], pred[0, :, -1]), axis=0)
+                    visual(gt, pd, os.path.join(folder_path, str(i) + '.pdf'))
         preds = np.array(preds)
         trues = np.array(trues)
-        inputx.append(batch_x.detach().cpu().numpy())
-        if i % 20 == 0:
-            input = input_x.detach().cpu().numpy()
-            gt = np.concatenate((input[0, :, -1], true[0, :, -1]), axis=0)
-            pd = np.concatenate((input[0, :, -1], pred[0, :, -1]), axis=0)
-            visual(gt, pd, os.path.join(folder_path, str(i) + '.pdf'))
         print('test shape:', preds.shape, trues.shape)
         preds = preds.reshape(-1, preds.shape[-2], preds.shape[-1])
         trues = trues.reshape(-1, trues.shape[-2], trues.shape[-1])
         print('test shape:', preds.shape, trues.shape)
 
-        if self.args.data == 'PEMS':
-            B, T, C = preds.shape
-            preds = test_data.inverse_transform(preds.reshape(-1, C)).reshape(B, T, C)
-            trues = test_data.inverse_transform(trues.reshape(-1, C)).reshape(B, T, C)
 
         # result save
         folder_path = './results/' + setting + '/'
@@ -436,6 +439,9 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         f.write('\n')
         f.write('\n')
         f.close()
+        np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
+        np.save(folder_path + 'pred.npy', preds)
+        np.save(folder_path + 'true.npy', trues)
 
         return
 

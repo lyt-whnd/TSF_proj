@@ -1,7 +1,7 @@
 export CUDA_VISIBLE_DEVICES=1
 
 python run.py \
---is_training 1 \
+--is_training 0 \
 --model_id test1 \
 --model CycleNet \
 --data solar_data \
