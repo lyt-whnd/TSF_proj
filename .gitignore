@@ -165,4 +165,7 @@ cython_debug/
 .checkpoints/
 .test_results/
 .results/
+results/
+test_results/
+checkpoints/
 ._*
