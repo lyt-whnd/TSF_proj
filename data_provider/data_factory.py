@@ -43,7 +43,6 @@ def data_provider(args, flag):
         target=args.target,
         timeenc=timeenc,
         freq=freq,
-        seasonal_patterns=args.seasonal_patterns,
         cycle=args.cycle
     )
     print(flag, len(data_set))

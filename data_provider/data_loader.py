@@ -432,7 +432,7 @@ class Dataset_Solar(Dataset):
 class solar_data(Dataset):
     def __init__(self, root_path, flag='train', size=None,
                  features='S', data_path='Solar_Power.xlsx',
-                 target='data', scale=True, timeenc=0, freq='h', seasonal_patterns=None,cycle=None):
+                 target='data', scale=True, timeenc=0, freq='h',cycle=None):
         # size [seq_len, label_len, pred_len]
         # info
         if size == None:
@@ -468,8 +468,13 @@ class solar_data(Dataset):
         df_raw['data'] = col
 
         # 代表左右边界
-        border1s = [0, 8 * 30 * 24 - self.seq_len, 10 * 30 * 24 - self.seq_len]
-        border2s = [8 * 30 * 24, 10 * 30 * 24, 12 * 30 * 24]
+        num_train = int(len(df_raw) * 0.7)
+        num_test = int(len(df_raw) * 0.2)
+        num_valid = int(len(df_raw) * 0.1)
+        # border1s = [0, 8 * 30 * 24 - self.seq_len, 10 * 30 * 24 - self.seq_len]
+        # border2s = [8 * 30 * 24, 10 * 30 * 24, 12 * 30 * 24]
+        border1s = [0, num_train - self.seq_len, len(df_raw) - num_test - self.seq_len]
+        border2s = [num_train, num_train + num_valid, len(df_raw)]
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
 
@@ -530,7 +535,6 @@ class solar_data(Dataset):
         seq_y = self.data_y[r_begin:r_end]
         seq_x_mark = self.data_stamp[s_begin:s_end]
         seq_y_mark = self.data_stamp[r_begin:r_end]
-
         cycle_index = torch.tensor(self.cycle_index[s_end])
 
         return seq_x, seq_y, seq_x_mark, seq_y_mark,cycle_index
@@ -574,8 +578,13 @@ class Dataset_Pred(Dataset):
 
     def __read_data__(self):
         self.scaler = StandardScaler()
-        df_raw = pd.read_csv(os.path.join(self.root_path,
-                                          self.data_path))
+        # df_raw = pd.read_csv(os.path.join(self.root_path,
+        #                                   self.data_path))
+        df_raw = pd.read_excel(os.path.join(self.root_path,
+                                            self.data_path))
+        # 将数据发电量放在最后一列
+        col = df_raw.pop("data")
+        df_raw['data'] = col
         '''
         df_raw.columns: ['date', ...(other features), target feature]
         '''
@@ -643,8 +652,11 @@ class Dataset_Pred(Dataset):
             seq_y = self.data_y[r_begin:r_begin + self.label_len]
         seq_x_mark = self.data_stamp[s_begin:s_end]
         seq_y_mark = self.data_stamp[r_begin:r_end]
+        print("s_end:", s_end)
+        cycle_index = torch.tensor(self.cycle_index[s_end % len(self.cycle_index)])
+        # cycle_index = torch.tensor(self.cycle_index[s_end])
 
-        return seq_x, seq_y, seq_x_mark, seq_y_mark
+        return seq_x, seq_y, seq_x_mark, seq_y_mark,cycle_index
 
     def __len__(self):
         return len(self.data_x) - self.seq_len + 1

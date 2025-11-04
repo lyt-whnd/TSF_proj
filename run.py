@@ -95,7 +95,7 @@ if __name__ == '__main__':
     parser.add_argument('--station_type', type=str, default='adaptive')
     parser.add_argument('--period_len', type=int, default=24)
     parser.add_argument('--station_lr', type=float, default=0.0001)
-    parser.add_argument('--adaptive_norm', type=bool, default=False, help='whether to use adaptive norm')
+    parser.add_argument('--adaptive_norm', type=int, default=0, help='whether to use adaptive norm')
 
     # optimization
     parser.add_argument('--num_workers', type=int, default=10, help='data loader num workers')
@@ -169,7 +169,8 @@ if __name__ == '__main__':
         exp = Exp(args)  # set experiments
         print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
         start_time = time.time()
-        exp.test(setting, test=1)
+        # exp.test(setting, test=1)
+        exp.predict(setting,load=True)
         end_time = time.time()
         print(f"运行时间: {end_time - start_time:.4f} 秒")
         torch.cuda.empty_cache()

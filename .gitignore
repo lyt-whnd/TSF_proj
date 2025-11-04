@@ -162,10 +162,10 @@ cython_debug/
 
 .DS_Store
 .dataset/
-.checkpoints/
 .test_results/
 .results/
 results/
 test_results/
-checkpoints/
 ._*
+/test_results/
+/results/
