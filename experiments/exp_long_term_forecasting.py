@@ -13,7 +13,9 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from model.Statistics_prediction import Statistics_prediction
+from model.DDN import DDN
+
+# from model.Statistics_prediction import Statistics_prediction
 
 
 warnings.filterwarnings('ignore')
@@ -71,17 +73,33 @@ def infer_future_timestamps_auto_batch(x: torch.Tensor, pred_len: int, freq: str
     return future_times
 
 
+#推测未来小时信息函数
+def infer_time(batch_time, pred_len):
+    # batch_time: [batch_size, seq_len]
+    batch_size, seq_len = batch_time.shape
+    pred_time = torch.zeros((batch_size, pred_len), dtype=batch_time.dtype).to(batch_time.device)
+    for i in range(batch_size):
+        last_hour = int(batch_time[i, -1].item())
+        for j in range(pred_len):
+            next_hour = (last_hour + j + 1) % 24
+            pred_time[i, j] = next_hour
+    return pred_time
+
+
 class Exp_Long_Term_Forecast(Exp_Basic):
     def __init__(self, args):
         super(Exp_Long_Term_Forecast, self).__init__(args)
-        self.station_pretrain_epoch = 5 if self.args.station_type == 'adaptive' else 0
+        self.station_pretrain_epoch = args.pre_epoch if self.args.station_type == 'adaptive' else 0
         self.station_type = args.station_type
 
     def _build_model(self):
 
-        #添加SAN统计量估计
-        if self.args.adaptive_norm:
-            self.statistics_pred = Statistics_prediction(self.args).to(self.device)
+        # #添加SAN统计量估计
+        # if self.args.adaptive_norm:
+        #     self.statistics_pred = Statistics_prediction(self.args).to(self.device)
+        #采用效果更好的DDN
+        self.statistics_pred = DDN(self.args).to(self.device)
+        self.station_loss = self.sliding_loss
 
         model = self.model_dict[self.args.model].Model(self.args).float()
 
@@ -117,15 +135,34 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         loss = self.criterion(statistics_pred, station_ture)
         return loss
 
+    def san_loss(self, y, statistics_pred):
+        bs, len, dim = y.shape
+        y = y.reshape(bs, -1, self.args.period_len, dim)
+        mean = torch.mean(y, dim=2)
+        std = torch.std(y, dim=2)
+        station_ture = torch.cat([mean, std], dim=-1)
+        loss = self.criterion(statistics_pred, station_ture)
+        return loss
+
+    def sliding_loss(self, y, statistics_pred):
+        _, (mean, std) = self.statistics_pred.norm(y.transpose(-1, -2), False)
+        station_ture = torch.cat([mean, std], dim=1).transpose(-1, -2)
+        loss = self.criterion(statistics_pred, station_ture)
+        return loss
+
     def vali(self, vali_data, vali_loader, criterion,epoch=None):
         total_loss = []
         self.model.eval()
+        self.statistics_pred.eval()
         with torch.no_grad():
             for i, (batch_x, batch_y, batch_x_mark, batch_y_mark,batch_cycle) in enumerate(vali_loader):
                 batch_x = batch_x.float().to(self.device)
-                batch_y = batch_y.float()
+                batch_y = batch_y.float().to(self.device)
 
-                if 'Wind' in self.args.data or 'Solar' in self.args.data:
+                if 'solar' in self.args.data.lower():
+                    batch_x = batch_x[:, :, 1:]
+
+                if 'Wind' in self.args.data or 'multi_wind' in self.args.data:
                     batch_x_mark = None
                     batch_y_mark = None
                 else:
@@ -133,7 +170,14 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     batch_y_mark = batch_y_mark.float().to(self.device)
 
                 if self.args.adaptive_norm:
-                    batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
+                    if epoch + 1 <= self.station_pretrain_epoch and self.args.use_norm == 'sliding':
+                        batch_x, statistics_pred, statistics_seq = self.statistics_pred.normalize(batch_x,
+                                                                                                  p_value=False)
+                    elif self.args.use_norm == 'sliding':
+                        batch_x, statistics_pred, statistics_seq = self.statistics_pred.normalize(batch_x)
+                    else:
+                        batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
+
                     if epoch + 1 <= self.station_pretrain_epoch:
                         f_dim = -1 if self.args.features == 'MS' else 0
                         batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
@@ -142,7 +186,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         loss = self.station_loss(batch_y, statistics_pred)
                     else:
                         # decoder input
-                        batch_y = batch_y.float().to(self.device)
                         dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
                         dec_label = batch_x[:, -self.args.label_len:, :]
                         dec_inp = torch.cat([dec_label, dec_inp], dim=1).float()
@@ -173,7 +216,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 else:
                     # channel_decoder input
                     dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
-                    dec_inp = torch.cat([batch_y[:, :self.args.label_len, :], dec_inp], dim=1).float().to(self.device)
+                    dec_label = batch_x[:, -self.args.label_len:, :]
+                    dec_inp = torch.cat([dec_label, dec_inp], dim=1).float()
 
                     if "Cycle" in self.args.model:
                         batch_cycle = batch_cycle.int().to(self.device)
@@ -185,7 +229,10 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         if self.args.output_attention:
                             outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
                         else:
-                            outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+                            if self.args.use_norm == 'sliding':
+                                outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+                            else:
+                                outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 
                     f_dim = -1 if self.args.features == 'MS' else 0
                     outputs = outputs[:, -self.args.pred_len:, f_dim:]
@@ -208,13 +255,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         vali_data, vali_loader = self._get_data(flag='val')
         test_data, test_loader = self._get_data(flag='test')
 
+        if self.args.pred_len == 1:
+            self.args.adaptive_norm = 0
+            if self.args.model == 'iTransformer':
+                self.args.use_norm = 'revin'
+                print("使用iTransformer revin")
         print("是否使用归一化：",self.args.adaptive_norm)
         path = os.path.join(self.args.checkpoints, setting)
         if not os.path.exists(path):
             os.makedirs(path)
 
         if self.args.adaptive_norm:
-            path_station = './station/' + '{}_s{}_p{}'.format(self.args.data, self.args.seq_len, self.args.pred_len)
+            path_station = './station/' + '{}_s{}_p{}_{}_m'.format(self.args.data, self.args.seq_len, self.args.pred_len,self.args.model)
 
             if not os.path.exists(path_station):
                 os.makedirs(path_station)
@@ -245,6 +297,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     best_model_path = path_station + '/' + 'checkpoint.pth'
                     self.statistics_pred.load_state_dict(torch.load(best_model_path))
                     print('loading pretrained adaptive station model')
+                    if self.args.use_norm == 'sliding' and self.args.twice_epoch >= 0:
+                        print('reset station model optim for finetune')
+
+                if self.args.use_norm == 'sliding' and 0 <= self.args.twice_epoch == epoch - self.station_pretrain_epoch:
+                    lr = model_optim.param_groups[0]['lr']
+                    model_optim.add_param_group({'params': self.statistics_pred.parameters(), 'lr': lr})
                     # self.statistics_pred.requires_grad_(False)
                 self.statistics_pred.train()
 
@@ -254,10 +312,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 iter_count += 1
                 model_optim.zero_grad()
                 batch_x = batch_x.float().to(self.device)
+                if 'solar' in self.args.data.lower():
+                    batch_x = batch_x[:, :, 1:]
 
                 batch_y = batch_y.float().to(self.device)
 
-                if 'Wind' in self.args.data or 'Solar' in self.args.data:
+                if 'Wind' in self.args.data or 'mutli_wind' in self.args.data:
                     batch_x_mark = None
                     batch_y_mark = None
                 else:
@@ -265,7 +325,13 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     batch_y_mark = batch_y_mark.float().to(self.device)
 
                 if self.args.adaptive_norm:
-                    batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
+                    if epoch + 1 <= self.station_pretrain_epoch and self.args.use_norm == 'sliding':
+                        batch_x, statistics_pred, statistics_seq = self.statistics_pred.normalize(batch_x,
+                                                                                                  p_value=False)
+                    elif self.args.use_norm == 'sliding':
+                        batch_x, statistics_pred, statistics_seq = self.statistics_pred.normalize(batch_x)
+                    else:
+                        batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
                     if epoch + 1 <= self.station_pretrain_epoch:
                         f_dim = -1 if self.args.features == 'MS' else 0
                         batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
@@ -288,7 +354,10 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                             if self.args.output_attention:
                                 outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
                             else:
-                                outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+                                if self.args.use_norm == 'sliding':
+                                    outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+                                else:
+                                    outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 
                         f_dim = -1 if self.args.features == 'MS' else 0
                         outputs = outputs[:, -self.args.pred_len:, f_dim:]
@@ -305,7 +374,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
                     # channel_decoder input
                     dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
-                    dec_inp = torch.cat([batch_y[:, :self.args.label_len, :], dec_inp], dim=1).float().to(self.device)
+                    dec_label = batch_x[:, -self.args.label_len:, :]
+                    dec_inp = torch.cat([dec_label, dec_inp], dim=1).float()
                     if "Cycle" in self.args.model:
                         batch_cycle = batch_cycle.int().to(self.device)
 
@@ -368,7 +438,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     print(
                         "Backbone Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
                             epoch + 1 - self.station_pretrain_epoch, train_steps, train_loss, vali_loss, test_loss))
-                    early_stopping(vali_loss, self.model, path)
+                    # 若有更新之后stop,即保存
+                    if self.args.use_norm == 'sliding' and 0 <= self.args.twice_epoch <= epoch - self.station_pretrain_epoch:
+                        early_stopping(vali_loss, self.model, path, self.statistics_pred, path_station)
+                    else:
+                        early_stopping(vali_loss, self.model, path)
+
                     if early_stopping.early_stop:
                         print("Early stopping")
                         break
@@ -409,15 +484,38 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
     def test(self, setting, test=0,epoch=None):
         test_data, test_loader = self._get_data(flag='test')
-        device = (
+
+        if self.args.pred_len == 1:
+            self.args.adaptive_norm = 0
+            if self.args.model == 'iTransformer':
+                self.args.use_norm = 'revin'
+                print("使用iTransformer revin")
+
+        print("Adaptive norm:", self.args.adaptive_norm)
+
+        self.device = (
             torch.device("mps") if torch.backends.mps.is_available()
             else torch.device("cuda" if torch.cuda.is_available() else "cpu")
         )
 
         if test:
-            print(f'loading model on {device}')
+            print(f'loading model on {self.device}')
             checkpoint_path = os.path.join('./checkpoints/' + setting, 'checkpoint.pth')
-            self.model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+            ckpt = torch.load(checkpoint_path, map_location=self.device)
+            state_dict = ckpt.get("model", ckpt)
+            msg = self.model.load_state_dict(state_dict, strict=False)
+            print("missing:", msg.missing_keys)
+            print("unexpected:", msg.unexpected_keys)
+            # self.model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+            if self.args.adaptive_norm:
+                path_station = './station/' + '{}_s{}_p{}_{}_m'.format(self.args.data, self.args.seq_len,
+                                                                       self.args.pred_len, self.args.model)
+                print("加载归一模型：" + path_station + 'checkpoint.pth')
+                ckpt_s = torch.load(os.path.join(path_station, 'checkpoint.pth'),
+                                    map_location=self.device)
+                state_s = ckpt_s.get('model', ckpt_s)  # 兼容有/无“model”键
+                self.statistics_pred.load_state_dict(state_s, strict=False)
+                self.statistics_pred.to(self.device)  # 保证模型也在CPU
         preds = []
         trues = []
         inputx = []
@@ -432,18 +530,24 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             for i, (batch_x, batch_y, batch_x_mark, batch_y_mark,batch_cycle) in enumerate(test_loader):
                 batch_x = batch_x.float().to(self.device)
                 batch_y = batch_y.float().to(self.device)
+                if 'solar' in self.args.data.lower():
+                    batch_time = batch_x[:, :, 0]
+                    batch_x = batch_x[:, :, 1:]
+                    pred_time = infer_time(batch_time, self.args.pred_len)
 
-                if 'Wind' in self.args.data or 'Solar' in self.args.data:
+                if 'Wind' in self.args.data or 'mutli_wind' in self.args.data:
                     batch_x_mark = None
                     batch_y_mark = None
                 else:
                     batch_x_mark = batch_x_mark.float().to(self.device)
                     batch_y_mark = batch_y_mark.float().to(self.device)
+                input_x = batch_x
 
                 if self.args.adaptive_norm:
-                    input_x = batch_x
-
-                    batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
+                    if self.args.use_norm == 'sliding':
+                        batch_x, statistics_pred, statistics_seq = self.statistics_pred.normalize(batch_x)
+                    else:
+                        batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
 
                     batch_x_mark = batch_x_mark.float().to(self.device)
                     batch_y_mark = batch_y_mark.float().to(self.device)
@@ -472,10 +576,27 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         if self.args.features == 'MS':
                             statistics_pred = statistics_pred[:, :, [self.args.enc_in - 1, -1]]
                         outputs = self.statistics_pred.de_normalize(outputs, statistics_pred)
+                        batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+
+                        # 获取缩放后的0
+                        zero_scaler = - test_data.scaler.mean_ / test_data.scaler.scale_
+
+                        # 将时间戳信息重新cat到output上
+                        outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
+                        # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
+                        zero_val = float(zero_scaler[-1])  # 转成 Python float，避免 numpy 与 torch 混用
+                        mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
+                        outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
+
+                        # 去掉tensor中时间的列
+                        outputs = outputs[:, :, 1:]
+
+
                 else:
                     # channel_decoder input
                     dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
-                    dec_inp = torch.cat([batch_y[:, :self.args.label_len, :], dec_inp], dim=1).float().to(self.device)
+                    dec_label = batch_x[:, -self.args.label_len:, :]
+                    dec_inp = torch.cat([dec_label, dec_inp], dim=1).float()
 
                     if "Cycle" in self.args.model:
                         batch_cycle = batch_cycle.int().to(self.device)
@@ -488,12 +609,29 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                             outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
 
                         else:
-                            outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+                            if self.args.use_norm == 'sliding':
+                                outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+                            else:
+                                outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 
                     f_dim = -1 if self.args.features == 'MS' else 0
                     outputs = outputs[:, -self.args.pred_len:, f_dim:]
+                    batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
 
-                batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+                    # 获取缩放后的0
+                    zero_scaler = - test_data.scaler.mean_ / test_data.scaler.scale_
+
+                    # 将时间戳信息重新cat到output上
+                    outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
+                    # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
+                    zero_val = float(zero_scaler[-1])  # 转成 Python float，避免 numpy 与 torch 混用
+                    mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
+                    outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
+
+                    # 去掉tensor中时间的列
+                    outputs = outputs[:, :, 1:]
+
+
                 outputs = outputs.detach().cpu().numpy()
                 batch_y = batch_y.detach().cpu().numpy()
                 if test_data.scale and self.args.inverse:
@@ -505,11 +643,11 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
                 preds.append(pred)
                 trues.append(true)
-
+                inputx.append(batch_x.detach().cpu().numpy())
                 if i % 20 == 0:
-                    input = batch_x.detach().cpu().numpy()
-                    gt = np.concatenate((input[0, :, -1], true[0, :, -1]), axis=0)
-                    pd = np.concatenate((input[0, :, -1], pred[0, :, -1]), axis=0)
+                    x = input_x.detach().cpu().numpy()
+                    gt = np.concatenate((x[0, :, -1], true[0, :, -1]), axis=0)
+                    pd = np.concatenate((x[0, :, -1], pred[0, :, -1]), axis=0)
                     visual(gt, pd, os.path.join(folder_path, str(i) + '.pdf'))
         preds = np.array(preds)
         trues = np.array(trues)
@@ -543,39 +681,133 @@ class Exp_Long_Term_Forecast(Exp_Basic):
     def predict(self, setting, load=False):
         pred_data, pred_loader = self._get_data(flag='pred')
 
+        if self.args.pred_len == 1:
+            self.args.adaptive_norm = 0
+            if self.args.model == 'iTransformer':
+                self.args.use_norm = 'revin'
+                print("使用iTransformer revin")
+
+        self.device = (
+            torch.device("mps") if torch.backends.mps.is_available()
+            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        )
+
         if load:
             path = os.path.join(self.args.checkpoints, setting)
             best_model_path = path + '/' + 'checkpoint.pth'
             self.model.load_state_dict(torch.load(best_model_path))
+            if self.args.adaptive_norm:
+                path_station = './station/' + '{}_s{}_p{}_{}_m'.format(self.args.data, self.args.seq_len,
+                                                                       self.args.pred_len, self.args.model)
+                print("加载归一模型：" + path_station + 'checkpoint.pth')
+                ckpt_s = torch.load(os.path.join(path_station, 'checkpoint.pth'),
+                                    map_location=self.device)
+                state_s = ckpt_s.get('model', ckpt_s)  # 兼容有/无“model”键
+                self.statistics_pred.load_state_dict(state_s, strict=False)
+                self.statistics_pred.to(self.device)  # 保证模型加载在cpu，cuda都能运行
 
         preds = []
 
         self.model.eval()
+        if self.args.adaptive_norm:
+            self.statistics_pred.eval()
         with torch.no_grad():
             for i, (batch_x, batch_y, batch_x_mark, batch_y_mark, batch_cycle) in enumerate(pred_loader):
                 batch_x = batch_x.float().to(self.device)
-                batch_y = batch_y.float()
-                if 'Wind' in self.args.data or 'Solar' in self.args.data:
+                batch_y = batch_y.float().to(self.device)
+                if 'solar' in self.args.data.lower():
+                    batch_time = batch_x[:, :, 0]
+                    batch_x = batch_x[:, :, 1:]
+                    pred_time = infer_time(batch_time, self.args.pred_len)
+
+                if 'Wind' in self.args.data or 'multi_wind' in self.args.data:
                     batch_x_mark = None
                     batch_y_mark = None
                 else:
                     batch_x_mark = batch_x_mark.float().to(self.device)
                     batch_y_mark = batch_y_mark.float().to(self.device)
-                if "Cycle" in self.args.model:
-                    batch_cycle = batch_cycle.int().to(self.device)
 
-                # decoder input
-                dec_inp = torch.zeros([batch_y.shape[0], self.args.pred_len, batch_y.shape[2]]).float().to(
-                    batch_y.device)
-                dec_inp = torch.cat([batch_y[:, :self.args.label_len, :], dec_inp], dim=1).float().to(self.device)
-                # encoder - decoder
-                if any(substr in self.args.model for substr in {'Cycle'}):
-                    outputs = self.model(batch_x, batch_cycle)
-                else:
-                    if self.args.output_attention:
-                        outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
+
+                if self.args.adaptive_norm:
+                    if self.args.use_norm == 'sliding':
+                        batch_x, statistics_pred, statistics_seq = self.statistics_pred.normalize(batch_x)
                     else:
-                        outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+                        batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
+
+                    batch_x_mark = batch_x_mark.float().to(self.device)
+                    batch_y_mark = batch_y_mark.float().to(self.device)
+                    # decoder input
+                    dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
+                    dec_label = batch_x[:, -self.args.label_len:, :]
+                    dec_inp = torch.cat([dec_label, dec_inp], dim=1).float().to(self.device)
+
+                    if "Cycle" in self.args.model:
+                        batch_cycle = batch_cycle.int().to(self.device)
+
+                    # fc1 - channel_decoder
+                    if any(substr in self.args.model for substr in {'Cycle'}):
+                        outputs = self.model(batch_x, batch_cycle)
+                    else:
+                        if self.args.output_attention:
+                            outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
+
+                        else:
+                            outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+
+                    f_dim = -1 if self.args.features == 'MS' else 0
+                    outputs = outputs[:, -self.args.pred_len:, f_dim:]
+
+                    if self.args.adaptive_norm:
+                        if self.args.features == 'MS':
+                            statistics_pred = statistics_pred[:, :, [self.args.enc_in - 1, -1]]
+                        outputs = self.statistics_pred.de_normalize(outputs, statistics_pred)
+                        batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+
+                        # 获取缩放后的0
+                        zero_scaler = - pred_data.scaler.mean_ / pred_data.scaler.scale_
+
+                        # 将时间戳信息重新cat到output上
+                        outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
+                        # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
+                        zero_val = float(zero_scaler[-1])  # 转成 Python float，避免 numpy 与 torch 混用
+                        mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
+                        outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
+
+                        # 去掉tensor中时间的列
+                        outputs = outputs[:, :, 1:]
+
+                else:
+                    if "Cycle" in self.args.model:
+                        batch_cycle = batch_cycle.int().to(self.device)
+
+                    # decoder input
+                    dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
+                    dec_label = batch_x[:, -self.args.label_len:, :]
+                    dec_inp = torch.cat([dec_label, dec_inp], dim=1).float()
+                    # encoder - decoder
+                    if any(substr in self.args.model for substr in {'Cycle'}):
+                        outputs = self.model(batch_x, batch_cycle)
+                    else:
+                        if self.args.output_attention:
+                            outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
+                        else:
+                            outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+                    f_dim = -1 if self.args.features == 'MS' else 0
+                    outputs = outputs[:, -self.args.pred_len:, f_dim:]
+
+                    # 获取缩放后的0
+                    zero_scaler = - pred_data.scaler.mean_ / pred_data.scaler.scale_
+
+                    # 将时间戳信息重新cat到output上
+                    outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
+                    # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
+                    zero_val = float(zero_scaler[-1])  # 转成 Python float，避免 numpy 与 torch 混用
+                    mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
+                    outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
+
+                    # 去掉tensor中时间的列
+                    outputs = outputs[:, :, 1:]
+
                 pred = outputs.detach().cpu().numpy()  # .squeeze()
                 preds.append(pred)
         # print("preds.shape:", preds.shape)

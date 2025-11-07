@@ -468,13 +468,13 @@ class solar_data(Dataset):
         df_raw['data'] = col
 
         # 代表左右边界
-        num_train = int(len(df_raw) * 0.7)
-        num_test = int(len(df_raw) * 0.2)
-        num_valid = int(len(df_raw) * 0.1)
-        # border1s = [0, 8 * 30 * 24 - self.seq_len, 10 * 30 * 24 - self.seq_len]
-        # border2s = [8 * 30 * 24, 10 * 30 * 24, 12 * 30 * 24]
-        border1s = [0, num_train - self.seq_len, len(df_raw) - num_test - self.seq_len]
-        border2s = [num_train, num_train + num_valid, len(df_raw)]
+        # num_train = int(len(df_raw) * 0.7)
+        # num_test = int(len(df_raw) * 0.2)
+        # num_valid = int(len(df_raw) * 0.1)
+        border1s = [0, 9 * 30 * 24 - self.seq_len, 9 * 30 * 24 + 2 * 30 * 24 - self.seq_len]
+        border2s = [len(df_raw), 9 * 30 * 24 + 2 * 30 * 24, 9 * 30 * 24 + 3 * 30 * 24]
+        # border1s = [0, num_train - self.seq_len, len(df_raw) - num_test - self.seq_len]
+        # border2s = [num_train, num_train + num_valid, len(df_raw)]
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
 
@@ -496,7 +496,13 @@ class solar_data(Dataset):
 
         df_stamp = df_raw[['date']][border1:border2]
         #重新处理太阳能中date中的格式
-        df_stamp['date'] = pd.to_datetime(df_stamp.date,format='%Y/%m/%D %H:%M')
+        df_stamp['date'] = pd.to_datetime(df_stamp.date,format='%y/%m/%d %h:%m')
+
+        # 计算置0
+        df_timestamp = df_raw[['date']][border1:border2]
+        df_timestamp['hour'] = df_timestamp.date.apply(lambda row: row.hour, 1)
+        df_timestamp = df_timestamp.drop(['date'], axis=1)
+
         if self.timeenc == 0:
             df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
             df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
@@ -516,7 +522,10 @@ class solar_data(Dataset):
             data_stamp = time_features(pd.to_datetime(df_stamp['date'].values), freq=self.freq)
             data_stamp = data_stamp.transpose(1, 0)
 
-        self.data_x = data[border1:border2]
+        # self.data_x = data[border1:border2]
+        # 将时间戳信息重新贴到data里面
+        self.data_x = np.concatenate(
+            (df_timestamp['hour'].values.reshape(border2 - border1, 1), data[border1:border2]), axis=1)
         self.data_y = data[border1:border2]
 
 
@@ -612,11 +621,17 @@ class Dataset_Pred(Dataset):
             data = df_data.values
 
         tmp_stamp = df_raw[['date']][border1:border2]
-        tmp_stamp['date'] = pd.to_datetime(tmp_stamp.date)
+        tmp_stamp['date'] = pd.to_datetime(tmp_stamp.date,format='%y/%m/%d %h:%m')
         pred_dates = pd.date_range(tmp_stamp.date.values[-1], periods=self.pred_len + 1, freq=self.freq)
 
         df_stamp = pd.DataFrame(columns=['date'])
         df_stamp.date = list(tmp_stamp.date.values) + list(pred_dates[1:])
+
+        # 计算置0
+        df_timestamp = df_raw[['date']][border1:border2]
+        df_timestamp['hour'] = df_timestamp.date.apply(lambda row: row.hour, 1)
+        df_timestamp = df_timestamp.drop(['date'], axis=1)
+
         if self.timeenc == 0:
             df_stamp['month'] = df_stamp.date.apply(lambda row: row.month, 1)
             df_stamp['day'] = df_stamp.date.apply(lambda row: row.day, 1)
@@ -629,7 +644,10 @@ class Dataset_Pred(Dataset):
             data_stamp = time_features(pd.to_datetime(df_stamp['date'].values), freq=self.freq)
             data_stamp = data_stamp.transpose(1, 0)
 
-        self.data_x = data[border1:border2]
+        # self.data_x = data[border1:border2]
+        self.data_x = np.concatenate(
+            (df_timestamp['hour'].values.reshape(border2 - border1, 1), data[border1:border2]), axis=1)
+
         if self.inverse:
             self.data_y = df_data.values[border1:border2]
         else:

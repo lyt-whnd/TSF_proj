@@ -7,7 +7,7 @@ import random
 import numpy as np
 
 if __name__ == '__main__':
-    fix_seed = 2023
+    fix_seed = 2021
     random.seed(fix_seed)
     torch.manual_seed(fix_seed)
     np.random.seed(fix_seed)
@@ -88,14 +88,30 @@ if __name__ == '__main__':
     #parser.add_argument('--activation', type=str, default='gelu', help='activation')
     #parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
     parser.add_argument('--do_predict', action='store_true', help='whether to predict unseen future data')
-    parser.add_argument('--use_norm',type=int, default=1, help='whether to use normalization or not')
+    parser.add_argument('--use_norm1',type=int, default=1, help='whether to use normalization or not')
     parser.add_argument('--class_strategy', type=str, default='projection', help='projection/average/cls_token')
 
     # statistics prediction module config
-    parser.add_argument('--station_type', type=str, default='adaptive')
+    # parser.add_argument('--station_type', type=str, default='adaptive')
     parser.add_argument('--period_len', type=int, default=24)
-    parser.add_argument('--station_lr', type=float, default=0.0001)
+    # parser.add_argument('--station_lr', type=float, default=0.0001)
     parser.add_argument('--adaptive_norm', type=int, default=0, help='whether to use adaptive norm')
+
+    # DDN :non-station module / statistics prediction module config
+    parser.add_argument('--j', type=int, default=0)
+    parser.add_argument('--learnable', action='store_true', default=False)
+    parser.add_argument('--wavelet', type=str, default='coif3')
+    parser.add_argument('--dr', type=float, default=0.05)
+    parser.add_argument('--pre_epoch', type=int, default=5)
+    parser.add_argument('--twice_epoch', type=int, default=1)
+    parser.add_argument('--use_norm', type=str, default='sliding')
+    parser.add_argument('--kernel_len', type=int, default=7)
+    parser.add_argument('--hkernel_len', type=int, default=5)
+    parser.add_argument('--station_lr', type=float, default=0.0001)
+    parser.add_argument('--station_type', type=str, default='adaptive')
+    parser.add_argument('--pd_ff', type=int, default=1024, help='dimension of fcn')
+    parser.add_argument('--pd_model', type=int, default=512, help='dimension of model')
+    parser.add_argument('--pe_layers', type=int, default=2, help='num of encoder layers')
 
     # optimization
     parser.add_argument('--num_workers', type=int, default=10, help='data loader num workers')
@@ -131,6 +147,15 @@ if __name__ == '__main__':
     print(args)
 
     Exp = Exp_Long_Term_Forecast
+    if args.adaptive_norm:
+        if 'solar' in args.data.lower():
+            if args.pred_len <= 96:
+                args.kernel_len = args.pred_len//2
+            elif args.pred_len >= 96:
+                args.kernel_len = 16
+            elif args.pred_len == 1:
+                args.adaptive_norm = 0
+
 
     if args.is_training:
         for ii in range(args.itr):
