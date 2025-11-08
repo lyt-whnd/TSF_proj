@@ -30,7 +30,7 @@ if __name__ == '__main__':
     parser.add_argument('--data', type=str, required=True, default='custom', help='dataset type')
     parser.add_argument('--root_path', type=str, default='./data/electricity/', help='root path of the data file')
     parser.add_argument('--data_path', type=str, default='electricity.csv', help='data csv file')
-    parser.add_argument('--features', type=str, default='M',
+    parser.add_argument('--features', type=str, default='MS',
                         help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
     parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
     parser.add_argument('--freq', type=str, default='h',
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         args.hkernel_len = 12
         args.twice_epoch = 2
         args.j = 1
-        args.pd_ff = 512
+        args.pd_ff = 256
         args.pe_layers = 1
         args.pre_epoch = 5
 
@@ -187,18 +187,17 @@ if __name__ == '__main__':
         args.hkernel_len = 12
         args.twice_epoch = 2
         args.j = 1
-        args.pd_ff = 512
+        args.pd_ff = 256
         args.pe_layers = 1
         args.pre_epoch = 5
 
     if args.is_training:
         for ii in range(args.itr):
             # setting record of experiments
-            setting = '{}_{}_{}_bs{}_ft{}_sl{}_ll{}_pl{}'.format(
+            setting = '{}_{}_{}_ft{}_sl{}_ll{}_pl{}'.format(
                 args.model_id,
                 args.model,
                 args.data,
-                args.batch_size,
                 args.features,
                 args.seq_len,
                 args.label_len,
