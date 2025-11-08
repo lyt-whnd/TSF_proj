@@ -5,10 +5,10 @@ model_name=iTransformer
 
 for pred_len in 1 12 24 72 120; do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_96_$pred_len$model_name \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features $features \
@@ -36,10 +36,10 @@ for pred_len in 1 12 24 72 120; do
 
 for pred_len in 1 12 24 72 120; do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_96_$pred_len$model_name \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features $features \
@@ -67,10 +67,10 @@ for pred_len in 1 12 24 72 120; do
 
 for pred_len in 1 12 24 72 120; do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_96_$pred_len$model_name \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features $features \
@@ -98,10 +98,10 @@ for pred_len in 1 12 24 72 120; do
 
 for pred_len in 1 12 24 72 120; do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_96_$pred_len$model_name \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features $features \
@@ -128,10 +128,10 @@ for pred_len in 1 12 24 72 120; do
 
 for pred_len in 1 12 24 72 120; do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_96_$pred_len$model_name \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features $features \

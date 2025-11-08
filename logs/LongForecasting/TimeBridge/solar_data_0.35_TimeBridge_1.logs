@@ -1,93 +1,10 @@
 Args in experiment:
-Namespace(activation='gelu', adaptive_norm=0, alpha=0.35, attn_dropout=0.15, batch_size=64, c_out=7, ca_layers=0, checkpoints='./checkpoints/', class_strategy='projection', cycle=24, d_ff=128, d_layers=1, d_model=128, data='solar_data', data_path='solar_data.xlsx', dec_in=7, des='Exp', devices='0,1,2,3', distil=True, do_predict=False, dr=0.05, dropout=0.0, e_layers=2, embed='timeF', embedding_epochs=5, embedding_lr=0.0005, enc_in=12, factor=1, features='MS', freq='h', gpu=0, hkernel_len=5, ia_layers=3, inverse=False, is_training=1, itr=1, j=0, kernel_len=7, label_len=48, learnable=False, learning_rate=0.0002, loss='MSE', lradj='type1', model='TimeBridge', model_id='solar_data_96_96', model_type='mlp', moving_avg=25, n_heads=8, num_p=None, num_workers=10, output_attention=False, patience=10, pct_start=0.2, pd_ff=1024, pd_layers=1, pd_model=512, pe_layers=2, period=24, period_len=24, pre_epoch=5, pred_len=1, revin=True, root_path='./dataset/Solar_Power/', seasonal_patterns='Monthly', seq_len=720, stable_len=6, station_lr=0.0001, station_type='adaptive', target='data', train_epochs=100, twice_epoch=1, use_gpu=True, use_multi_gpu=False, use_norm='sliding', use_norm1=1, use_revin=1, wavelet='coif3')
+Namespace(activation='gelu', adaptive_norm=1, alpha=0.35, attn_dropout=0.15, batch_size=64, c_out=7, ca_layers=0, checkpoints='./checkpoints/', class_strategy='projection', cycle=24, d_ff=128, d_layers=1, d_model=128, data='solar_data', data_path='solar_data.xlsx', dec_in=7, des='Exp', devices='0,1,2,3', distil=True, do_predict=False, dr=0.05, dropout=0.0, e_layers=2, embed='timeF', embedding_epochs=5, embedding_lr=0.0005, enc_in=12, factor=1, features='MS', freq='h', gpu=0, hkernel_len=5, ia_layers=3, inverse=False, is_training=0, itr=1, j=1, kernel_len=7, label_len=48, learnable=False, learning_rate=0.0002, loss='MSE', lradj='type1', model='TimeBridge', model_id='solar_data', model_type='mlp', moving_avg=25, n_heads=8, num_p=None, num_workers=10, output_attention=False, patience=10, pct_start=0.2, pd_ff=1024, pd_layers=1, pd_model=512, pe_layers=2, period=24, period_len=24, pre_epoch=5, pred_len=1, revin=True, root_path='./dataset/Solar_Power/', seasonal_patterns='Monthly', seq_len=720, stable_len=6, station_lr=0.0001, station_type='adaptive', target='data', train_epochs=100, twice_epoch=1, use_gpu=True, use_multi_gpu=False, use_norm='sliding', use_norm1=1, use_revin=1, wavelet='coif3')
 Use GPU: cuda:0
->>>>>>>start training : solar_data_96_96_TimeBridge_solar_data_bs64_ftMS_sl720_ll48_pl1>>>>>>>>>>>>>>>>>>>>>>>>>>
-self.scale: True
-train 8064
-self.scale: True
-val 1440
-self.scale: True
-test 720
-是否使用归一化： 0
-	iters: 100, epoch: 1 | loss: 0.2914158
-	speed: 0.1355s/iter; left time: 1693.3828s
-Epoch: 1 cost time: 15.880829095840454
-Epoch: 1, Steps: 126 | Train Loss: 0.3491075 Vali Loss: 0.1333326 Test Loss: 0.0730681
-Validation loss decreased (inf --> 0.133333).  Saving model ...
-	iters: 100, epoch: 2 | loss: 0.1877832
-	speed: 0.1729s/iter; left time: 2139.4821s
-Epoch: 2 cost time: 12.526777267456055
-Epoch: 2, Steps: 126 | Train Loss: 0.2184201 Vali Loss: 0.0691869 Test Loss: 0.0462831
-Validation loss decreased (0.133333 --> 0.069187).  Saving model ...
-	iters: 100, epoch: 3 | loss: 0.1874390
-	speed: 0.1815s/iter; left time: 2222.9975s
-Epoch: 3 cost time: 13.28967833518982
-Epoch: 3, Steps: 126 | Train Loss: 0.1648550 Vali Loss: 0.0501336 Test Loss: 0.0311683
-Validation loss decreased (0.069187 --> 0.050134).  Saving model ...
-	iters: 100, epoch: 4 | loss: 0.1674437
-	speed: 0.1824s/iter; left time: 2211.7849s
-Epoch: 4 cost time: 12.590171337127686
-Epoch: 4, Steps: 126 | Train Loss: 0.1454569 Vali Loss: 0.0434245 Test Loss: 0.0257960
-Validation loss decreased (0.050134 --> 0.043425).  Saving model ...
-	iters: 100, epoch: 5 | loss: 0.1361085
-	speed: 0.1583s/iter; left time: 1899.5125s
-Epoch: 5 cost time: 12.117803812026978
-Epoch: 5, Steps: 126 | Train Loss: 0.1393615 Vali Loss: 0.0417844 Test Loss: 0.0234462
-Validation loss decreased (0.043425 --> 0.041784).  Saving model ...
-	iters: 100, epoch: 6 | loss: 0.1113551
-	speed: 0.1224s/iter; left time: 1452.5817s
-Epoch: 6 cost time: 7.392788648605347
-Epoch: 6, Steps: 126 | Train Loss: 0.1350428 Vali Loss: 0.0429515 Test Loss: 0.0235027
-EarlyStopping counter: 1 out of 10
-	iters: 100, epoch: 7 | loss: 0.1990707
-	speed: 0.1773s/iter; left time: 2082.7769s
-Epoch: 7 cost time: 12.887219905853271
-Epoch: 7, Steps: 126 | Train Loss: 0.1335537 Vali Loss: 0.0426723 Test Loss: 0.0231847
-EarlyStopping counter: 2 out of 10
-	iters: 100, epoch: 8 | loss: 0.2040519
-	speed: 0.1818s/iter; left time: 2112.6923s
-Epoch: 8 cost time: 13.540965795516968
-Epoch: 8, Steps: 126 | Train Loss: 0.1325257 Vali Loss: 0.0426942 Test Loss: 0.0235082
-EarlyStopping counter: 3 out of 10
-	iters: 100, epoch: 9 | loss: 0.1034933
-	speed: 0.1737s/iter; left time: 1996.3944s
-Epoch: 9 cost time: 12.436093091964722
-Epoch: 9, Steps: 126 | Train Loss: 0.1316875 Vali Loss: 0.0421504 Test Loss: 0.0231601
-EarlyStopping counter: 4 out of 10
-	iters: 100, epoch: 10 | loss: 0.1541051
-	speed: 0.1946s/iter; left time: 2212.3321s
-Epoch: 10 cost time: 13.995198965072632
-Epoch: 10, Steps: 126 | Train Loss: 0.1313165 Vali Loss: 0.0425092 Test Loss: 0.0232018
-EarlyStopping counter: 5 out of 10
-	iters: 100, epoch: 11 | loss: 0.1190829
-	speed: 0.1778s/iter; left time: 1998.5742s
-Epoch: 11 cost time: 13.832445859909058
-Epoch: 11, Steps: 126 | Train Loss: 0.1310403 Vali Loss: 0.0422974 Test Loss: 0.0231240
-EarlyStopping counter: 6 out of 10
-	iters: 100, epoch: 12 | loss: 0.1021124
-	speed: 0.1837s/iter; left time: 2042.1139s
-Epoch: 12 cost time: 14.319719076156616
-Epoch: 12, Steps: 126 | Train Loss: 0.1307748 Vali Loss: 0.0419967 Test Loss: 0.0231938
-EarlyStopping counter: 7 out of 10
-	iters: 100, epoch: 13 | loss: 0.1086502
-	speed: 0.1852s/iter; left time: 2035.2732s
-Epoch: 13 cost time: 14.28361988067627
-Epoch: 13, Steps: 126 | Train Loss: 0.1315768 Vali Loss: 0.0424516 Test Loss: 0.0231916
-EarlyStopping counter: 8 out of 10
-	iters: 100, epoch: 14 | loss: 0.1934427
-	speed: 0.1751s/iter; left time: 1902.5349s
-Epoch: 14 cost time: 12.049169778823853
-Epoch: 14, Steps: 126 | Train Loss: 0.1313184 Vali Loss: 0.0418843 Test Loss: 0.0231860
-EarlyStopping counter: 9 out of 10
-	iters: 100, epoch: 15 | loss: 0.1429604
-	speed: 0.1778s/iter; left time: 1909.3212s
-Epoch: 15 cost time: 13.822347640991211
-Epoch: 15, Steps: 126 | Train Loss: 0.1308703 Vali Loss: 0.0424925 Test Loss: 0.0231821
-EarlyStopping counter: 10 out of 10
-Early stopping
->>>>>>>testing : solar_data_96_96_TimeBridge_solar_data_bs64_ftMS_sl720_ll48_pl1<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-self.scale: True
-test 720
-test shape: (720, 1, 1, 1) (720, 1, 1, 1)
-test shape: (720, 1, 1) (720, 1, 1)
-mse:0.022995643317699432, mae:0.06761984527111053
+>>>>>>>testing : solar_data_TimeBridge_solar_data_ftMS_sl720_ll48_pl1<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+pred 1
+s_end: 720
+preds.shape: (1, 1, 1, 1)
+preds.shape: (1, 1, 1)
+✅ 保存成功: ./results/solar_data_TimeBridge_solar_data_ftMS_sl720_ll48_pl1/real_prediction.xlsx
+运行时间: 3.2448 秒

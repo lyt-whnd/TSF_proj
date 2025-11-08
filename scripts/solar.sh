@@ -21,10 +21,10 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_data_96_96 \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features MS \
@@ -43,7 +43,7 @@ do
     --learning_rate 0.0002 \
     --target 'data' \
     --train_epochs 100 \
-    --patience 10 \
+    --patience 3 \
     --itr 1 | tee logs/LongForecasting/TimeBridge/$data_name'_'$alpha'_'$model_name'_'$pred_len.logs
 done
 
@@ -59,10 +59,10 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_data_96_96 \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features MS \
@@ -96,10 +96,10 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_data_96_96 \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features MS \
@@ -132,10 +132,10 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_data_96_96 \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features MS \
@@ -168,10 +168,10 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Solar_Power/ \
     --data_path solar_data.xlsx \
-    --model_id solar_data_96_96 \
+    --model_id solar_data \
     --model $model_name \
     --data solar_data \
     --features MS \

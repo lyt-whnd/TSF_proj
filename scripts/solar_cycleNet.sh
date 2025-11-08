@@ -1,11 +1,11 @@
 export CUDA_VISIBLE_DEVICES=1
 for pred_len in 1 12 24 72 120; do
   python run.py \
-    --is_training 1 \
+    --is_training 0 \
     --seq_len 96 \
     --label_len 48 \
     --pred_len $pred_len \
-    --model_id test1 \
+    --model_id solar_data \
     --model CycleNet \
     --data solar_data \
     --root_path ./dataset/Solar_Power/ \
@@ -27,11 +27,11 @@ for pred_len in 1 12 24 72 120; do
 
 for pred_len in 1 12 24 72 120; do
   python run.py \
-    --is_training 1 \
+    --is_training 0 \
     --seq_len 192 \
     --label_len 48 \
     --pred_len $pred_len \
-    --model_id test1 \
+    --model_id solar_data \
     --model CycleNet \
     --data solar_data \
     --root_path ./dataset/Solar_Power/ \
@@ -52,11 +52,11 @@ for pred_len in 1 12 24 72 120; do
 
 for pred_len in 1 12 24 72 120; do
   python run.py \
-    --is_training 1 \
+    --is_training 0 \
     --seq_len 336 \
     --label_len 48 \
     --pred_len $pred_len \
-    --model_id test1 \
+    --model_id solar_data \
     --model CycleNet \
     --data solar_data \
     --root_path ./dataset/Solar_Power/ \
@@ -76,11 +76,11 @@ for pred_len in 1 12 24 72 120; do
 
 for pred_len in 1 12 24 72 120; do
   python run.py \
-    --is_training 1 \
+    --is_training 0 \
     --seq_len 512 \
     --label_len 48 \
     --pred_len $pred_len \
-    --model_id test1 \
+    --model_id solar_data \
     --model CycleNet \
     --data solar_data \
     --root_path ./dataset/Solar_Power/ \
@@ -101,11 +101,11 @@ for pred_len in 1 12 24 72 120; do
 
 for pred_len in 1 12 24 72 120; do
   python run.py \
-    --is_training 1 \
+    --is_training 0 \
     --seq_len 720 \
     --label_len 48 \
     --pred_len $pred_len \
-    --model_id test1 \
+    --model_id solar_data \
     --model CycleNet \
     --data solar_data \
     --root_path ./dataset/Solar_Power/ \

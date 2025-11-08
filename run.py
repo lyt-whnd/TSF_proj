@@ -175,12 +175,16 @@ if __name__ == '__main__':
         args.pre_epoch = 5
 
     if args.model == 'TimeBridge' and 'solar' in args.data.lower():
+        args.adaptive_norm = 0
         args.ca_layers = 0
         args.pd_layers = 1
         args.ia_layers = 3
         args.d_model = 128
         args.d_ff=128
         args.alpha = 0.35
+        if args.seq_len == 512:
+            args.period = 16
+            args.adaptive_norm = 1
 
     if args.model == 'CycleNet' and 'solar' in args.data.lower():
         args.period_len = 16
@@ -213,11 +217,10 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
     else:
         ii = 0
-        setting = '{}_{}_{}_bs{}_ft{}_sl{}_ll{}_pl{}'.format(
+        setting = '{}_{}_{}_ft{}_sl{}_ll{}_pl{}'.format(
             args.model_id,
             args.model,
             args.data,
-            args.batch_size,
             args.features,
             args.seq_len,
             args.label_len,
