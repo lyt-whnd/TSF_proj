@@ -95,10 +95,10 @@ if __name__ == '__main__':
     # parser.add_argument('--station_type', type=str, default='adaptive')
     parser.add_argument('--period_len', type=int, default=24)
     # parser.add_argument('--station_lr', type=float, default=0.0001)
-    parser.add_argument('--adaptive_norm', type=int, default=0, help='whether to use adaptive norm')
+    parser.add_argument('--adaptive_norm', type=int, default=1, help='whether to use adaptive norm')
 
     # DDN :non-station module / statistics prediction module config
-    parser.add_argument('--j', type=int, default=0)
+    parser.add_argument('--j', type=int, default=1)
     parser.add_argument('--learnable', action='store_true', default=False)
     parser.add_argument('--wavelet', type=str, default='coif3')
     parser.add_argument('--dr', type=float, default=0.05)
@@ -147,6 +147,8 @@ if __name__ == '__main__':
     print(args)
 
     Exp = Exp_Long_Term_Forecast
+
+    #参数定义
     if args.adaptive_norm:
         if 'solar' in args.data.lower():
             if args.pred_len <= 96:
@@ -155,7 +157,39 @@ if __name__ == '__main__':
                 args.kernel_len = 16
             elif args.pred_len == 1:
                 args.adaptive_norm = 0
+    if 'solar' in args.data.lower():
+        args.target = 'data'
+        args.enc_in = 12
+        args.dec_in = 12
+        args.c_out = 12
 
+    if args.model == 'iTransformer' and 'solar' in args.data.lower():
+        args.d_model = 640
+        args.e_layers = 4
+        args.period_len = 16
+        args.hkernel_len = 12
+        args.twice_epoch = 2
+        args.j = 1
+        args.pd_ff = 512
+        args.pe_layers = 1
+        args.pre_epoch = 5
+
+    if args.model == 'TimeBridge' and 'solar' in args.data.lower():
+        args.ca_layers = 0
+        args.pd_layers = 1
+        args.ia_layers = 3
+        args.d_model = 128
+        args.d_ff=128
+        args.alpha = 0.35
+
+    if args.model == 'CycleNet' and 'solar' in args.data.lower():
+        args.period_len = 16
+        args.hkernel_len = 12
+        args.twice_epoch = 2
+        args.j = 1
+        args.pd_ff = 512
+        args.pe_layers = 1
+        args.pre_epoch = 5
 
     if args.is_training:
         for ii in range(args.itr):

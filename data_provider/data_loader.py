@@ -496,10 +496,11 @@ class solar_data(Dataset):
 
         df_stamp = df_raw[['date']][border1:border2]
         #重新处理太阳能中date中的格式
-        df_stamp['date'] = pd.to_datetime(df_stamp.date,format='%y/%m/%d %h:%m')
+        df_stamp['date'] = pd.to_datetime(df_stamp.date)
 
         # 计算置0
         df_timestamp = df_raw[['date']][border1:border2]
+        df_timestamp['date'] = pd.to_datetime(df_timestamp.date)
         df_timestamp['hour'] = df_timestamp.date.apply(lambda row: row.hour, 1)
         df_timestamp = df_timestamp.drop(['date'], axis=1)
 
@@ -621,7 +622,7 @@ class Dataset_Pred(Dataset):
             data = df_data.values
 
         tmp_stamp = df_raw[['date']][border1:border2]
-        tmp_stamp['date'] = pd.to_datetime(tmp_stamp.date,format='%y/%m/%d %h:%m')
+        tmp_stamp['date'] = pd.to_datetime(tmp_stamp.date)
         pred_dates = pd.date_range(tmp_stamp.date.values[-1], periods=self.pred_len + 1, freq=self.freq)
 
         df_stamp = pd.DataFrame(columns=['date'])
@@ -629,6 +630,7 @@ class Dataset_Pred(Dataset):
 
         # 计算置0
         df_timestamp = df_raw[['date']][border1:border2]
+        df_timestamp['date'] = pd.to_datetime(df_timestamp.date)
         df_timestamp['hour'] = df_timestamp.date.apply(lambda row: row.hour, 1)
         df_timestamp = df_timestamp.drop(['date'], axis=1)
 
