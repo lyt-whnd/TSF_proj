@@ -165,6 +165,7 @@ if __name__ == '__main__':
 
     if args.model == 'iTransformer' and 'solar' in args.data.lower():
         args.d_model = 640
+        args.d_ff = 256
         args.e_layers = 4
         args.period_len = 16
         args.hkernel_len = 12
