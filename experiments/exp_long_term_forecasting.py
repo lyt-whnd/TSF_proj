@@ -12,6 +12,7 @@ import time
 import warnings
 import numpy as np
 import pandas as pd
+from collections import defaultdict
 
 from model.DDN import DDN
 
@@ -150,12 +151,54 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         loss = self.criterion(statistics_pred, station_ture)
         return loss
 
+    def _irm_penalty(self, y_pred, y_true, env_ids, criterion=None):
+        """
+        IRMv1 penalty: sum_e || d/dw L_e(w * y_pred, y_true) |_{w=1} ||^2
+        y_pred, y_true: 形状需可被 criterion 接受（通常 [B, pred_len, C] 或被你展平后的）
+        env_ids: [B] 的长整型域 id
+        """
+        device = y_pred.device
+        envs = torch.unique(env_ids)
+        penalty = 0.0
+        used = 0
+        for e in envs:
+            mask = (env_ids == e)
+            if mask.sum() < 2:  # 太少就跳过，避免数值不稳定
+                continue
+            w = torch.tensor(1.0, requires_grad=True, device=device)
+            loss_e = criterion(w * y_pred[mask], y_true[mask])
+            grad = torch.autograd.grad(loss_e, [w], create_graph=True)[0]
+            penalty = penalty + grad.pow(2)
+            used += 1
+        if used == 0:
+            return torch.tensor(0.0, device=device)
+        return penalty / used
+
+    def _vrex_penalty(self, losses_per_env):
+        """
+        V-REx penalty: variance of per-environment empirical risks
+        Args:
+            losses_per_env: List[Tensor] where each tensor is a scalar loss for one environment (already averaged over that env's batch samples)
+        Returns:
+            Tensor scalar = Var_e[R_e]
+        注：与论文 V-REx 一致（REx = Equalize risks across domains），当 β>0 时鼓励各域风险相等。
+        """
+        if losses_per_env is None or len(losses_per_env) <= 1:
+            # 少于两个域时无法计算方差，返回 0
+            return torch.tensor(0.0, device=self.device)
+        L = torch.stack(losses_per_env)  # [E]
+        # 无偏或有偏都可，这里按论文实现常用的有偏方差（与代码更稳定）
+        return L.var(unbiased=False)
+
     def vali(self, vali_data, vali_loader, criterion,epoch=None):
         total_loss = []
+        vali_domain_loss = defaultdict(list)
         self.model.eval()
         self.statistics_pred.eval()
         with torch.no_grad():
-            for i, (batch_x, batch_y, batch_x_mark, batch_y_mark,batch_cycle) in enumerate(vali_loader):
+            for i, batch in enumerate(vali_loader):
+                batch_x, batch_y, batch_x_mark, batch_y_mark, batch_cycle, *rest = batch
+                env_id = rest[0] if rest else None
                 batch_x = batch_x.float().to(self.device)
                 batch_y = batch_y.float().to(self.device)
 
@@ -244,6 +287,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     loss = criterion(pred, true)
                 total_loss.append(loss.cpu().item())
 
+                # --- per-batch per-domain loss logging ---
+                with torch.no_grad():
+                    doms, counts = torch.unique(env_id, return_counts=True)
+                    msg = []
+                    for d in doms:
+                        mask = (env_id == d)
+                        if mask.any():
+                            did = d.item()
+                            dom_loss = criterion(outputs[mask], batch_y[mask]).item()
+                            msg.append(f"domain {int(d.item())}: {dom_loss:.6f} (n={int(mask.sum().item())})")
+                            vali_domain_loss[did].append(dom_loss)
+
         total_loss = np.average(total_loss)
         self.model.train()
         if self.args.adaptive_norm:
@@ -281,6 +336,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         model_optim = self._select_optimizer()
         self._select_criterion()
 
+        use_IRM_flag = False  # 是否使用IRM正则化
+        use_VREX_flag = True  # 是否使用V-REx风险外推正则（Risk Extrapolation, variance of per-domain risks）
+        # 测试batch size大小
+        print(">>> train_loader.batch_size =", getattr(train_loader, "batch_size", None))
+        print(">>> test_loader.batch_size =", getattr(test_loader, "batch_size", None))
+
         if self.args.lradj == 'TST':
             scheduler = lr_scheduler.OneCycleLR(optimizer=model_optim,
                                                 steps_per_epoch=train_steps,
@@ -291,6 +352,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         for epoch in range(self.args.train_epochs + self.station_pretrain_epoch):
             iter_count = 0
             train_loss = []
+            train_domain_loss = defaultdict(list)
 
             if self.args.adaptive_norm:
                 if epoch == self.station_pretrain_epoch and self.args.station_type == 'adaptive':
@@ -308,7 +370,25 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             self.model.train()
             epoch_time = time.time()
-            for i, (batch_x, batch_y, batch_x_mark, batch_y_mark,batch_cycle) in enumerate(train_loader):
+
+            # 添加IRM参数
+            if use_IRM_flag:
+                print("使用IRM")
+                irm_lambda = getattr(self.args, 'irm_lambda', 10.0)  # e.g. 1.0
+                irm_anneal = getattr(self.args, 'irm_anneal_iters', 10000)  # e.g. 500
+                global_step = 0
+            elif use_VREX_flag:
+                print("使用VREX")
+                # --- V-REx 超参（均使用 getattr 以避免未在 args 中定义时报错）---
+                beta_vrex = getattr(self.args, 'beta_vrex', 50)  # e.g. 5.0
+                vrex_anneal = getattr(self.args, 'vrex_anneal_iters', 10000)  # e.g. 500
+                global_step = 0
+                print("beta_vrex的值为：", beta_vrex)
+
+            for i, batch in enumerate(train_loader):
+                batch_x, batch_y, batch_x_mark, batch_y_mark, batch_cycle, *rest = batch
+                env_id = rest[0] if rest else None
+
                 iter_count += 1
                 model_optim.zero_grad()
                 batch_x = batch_x.float().to(self.device)
@@ -365,7 +445,46 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                             statistics_pred = statistics_pred[:, :, [self.args.enc_in - 1, -1]]
                         outputs = self.statistics_pred.de_normalize(outputs, statistics_pred)
                         batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                        if self.args.model == "TimeBridge":
+
+                        # --- 选择目标：V-REx > IRM > ERM ---
+                        if use_VREX_flag:
+                            # 1) 逐域损失
+                            losses_e = []
+                            envs = torch.unique(env_id)
+                            for e in envs:
+                                m = (env_id == e)
+                                if m.any():
+                                    losses_e.append(self.criterion(outputs[m], batch_y[m]))
+                            # 2) ERM 基础项（域均值）
+                            if len(losses_e) > 0:
+                                erm_loss = torch.stack(losses_e).mean()
+                            else:
+                                erm_loss = self.criterion(outputs, batch_y)
+                            # 3) V-REx 方差项（退火）
+                            vrex_w = 0.0 if global_step < vrex_anneal else beta_vrex
+                            vrex_pen = self._vrex_penalty(losses_per_env=losses_e) if vrex_w > 0.0 else torch.tensor(
+                                0.0, device=self.device)
+                            loss = erm_loss + vrex_w * vrex_pen
+                            global_step += 1
+                        # 是否使用IRM
+                        elif use_IRM_flag:
+                            pred = outputs
+                            # 添加IRM参数
+                            erm_loss = self.criterion(pred, batch_y[:, -pred.shape[1]:, :])  # 让 y 的时间维与 pred 对齐
+                            irm_w = 0.0 if global_step < irm_anneal else irm_lambda
+                            if irm_w > 0.0:
+                                irm_pen = self._irm_penalty(pred, batch_y[:, -pred.shape[1]:, :], env_id,
+                                                            criterion=self.criterion)
+                                loss = erm_loss + irm_w * irm_pen
+                            else:
+                                irm_pen = torch.tensor(0.0, device=self.device)
+                                loss = erm_loss
+
+                            global_step += 1
+                        # else:
+                        #     loss = self.criterion(outputs, batch_y)
+
+                        elif self.args.model == "TimeBridge":
                             loss = self.time_freq_mae(batch_y, outputs)
                         else:
                             loss = self.criterion(outputs, batch_y)
@@ -390,12 +509,69 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     f_dim = -1 if self.args.features == 'MS' else 0
                     outputs = outputs[:, -self.args.pred_len:, f_dim:]
                     batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                    if self.args.model == "TimeBridge":
+
+                    # --- 选择目标：V-REx > IRM > ERM ---
+                    if use_VREX_flag:
+                        # 1) 逐域损失
+                        losses_e = []
+                        envs = torch.unique(env_id)
+                        for e in envs:
+                            m = (env_id == e)
+                            if m.any():
+                                losses_e.append(self.criterion(outputs[m], batch_y[m]))
+                        # 2) ERM 基础项（域均值）
+                        if len(losses_e) > 0:
+                            erm_loss = torch.stack(losses_e).mean()
+                        else:
+                            erm_loss = self.criterion(outputs, batch_y)
+                        # 3) V-REx 方差项（退火）
+                        vrex_w = 0.0 if global_step < vrex_anneal else beta_vrex
+                        vrex_pen = self._vrex_penalty(losses_per_env=losses_e) if vrex_w > 0.0 else torch.tensor(
+                            0.0, device=self.device)
+                        loss = erm_loss + vrex_w * vrex_pen
+                        global_step += 1
+                    # 是否使用IRM
+                    elif use_IRM_flag:
+                        pred = outputs
+                        # 添加IRM参数
+                        erm_loss = self.criterion(pred, batch_y[:, -pred.shape[1]:, :])  # 让 y 的时间维与 pred 对齐
+                        irm_w = 0.0 if global_step < irm_anneal else irm_lambda
+                        if irm_w > 0.0:
+                            irm_pen = self._irm_penalty(pred, batch_y[:, -pred.shape[1]:, :], env_id,
+                                                        criterion=self.criterion)
+                            loss = erm_loss + irm_w * irm_pen
+                        else:
+                            irm_pen = torch.tensor(0.0, device=self.device)
+                            loss = erm_loss
+
+                        global_step += 1
+                    # else:
+                    #     loss = self.criterion(outputs, batch_y)
+
+                    elif self.args.model == "TimeBridge":
                         loss = self.time_freq_mae(batch_y, outputs)
                     else:
                         loss = self.criterion(outputs, batch_y)
+                    train_loss.append(loss.item())
+
+                    # if self.args.model == "TimeBridge":
+                    #     loss = self.time_freq_mae(batch_y, outputs)
+                    # else:
+                    #     loss = self.criterion(outputs, batch_y)
 
                     train_loss.append(loss.item())
+
+                    # --- per-batch per-domain loss logging ---
+                    with torch.no_grad():
+                        doms, counts = torch.unique(env_id, return_counts=True)
+                        msg = []
+                        for d in doms:
+                            mask = (env_id == d)
+                            if mask.any():
+                                did = d.item()
+                                dom_loss = self.criterion(outputs[mask], batch_y[mask]).item()
+                                msg.append(f"domain {int(d.item())}: {dom_loss:.6f} (n={int(mask.sum().item())})")
+                                train_domain_loss[did].append(dom_loss)
 
                 if (i + 1) % 100 == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
@@ -403,9 +579,21 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
                     print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
                     iter_count = 0
+                    # 添加IRM损失
+                    if use_IRM_flag:
+                        print(f'| loss: {erm_loss.item():.4f} | irm: {irm_pen.item():.4f} | total: {loss.item():.4f}')
+                    if use_VREX_flag:
+                        # 若启用 V-REx，打印方差正则与权重
+                        try:
+                            print(
+                                f"| erm: {erm_loss.item():.4f} | vrex: {float(vrex_pen.item()) if 'vrex_pen' in locals() else 0.0:.4f} | beta: {vrex_w:.4f} | total: {loss.item():.4f}")
+                        except Exception:
+                            pass
                     time_now = time.time()
 
                 loss.backward()
+                #梯度裁剪，防止梯度爆炸
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 if self.args.adaptive_norm:
                     # two-stage training schema
                     if epoch + 1 <= self.station_pretrain_epoch:
@@ -579,12 +767,15 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
 
                         # 获取缩放后的0
-                        zero_scaler = - test_data.scaler.mean_ / test_data.scaler.scale_
+                        if not self.args.inverse:
+                            zero_scaler = - test_data.scaler.mean_[-1] / test_data.scaler.scale_[-1]
+                        else:
+                            zero_scaler = 0
 
                         # 将时间戳信息重新cat到output上
                         outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
                         # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
-                        zero_val = float(zero_scaler[-1])  # 转成 Python float，避免 numpy 与 torch 混用
+                        zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
                         mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
                         outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
 
@@ -619,12 +810,15 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
 
                     # 获取缩放后的0
-                    zero_scaler = - test_data.scaler.mean_ / test_data.scaler.scale_
+                    if not self.args.inverse:
+                        zero_scaler = - test_data.scaler.mean_[-1] / test_data.scaler.scale_[-1]
+                    else:
+                        zero_scaler = 0
 
                     # 将时间戳信息重新cat到output上
                     outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
                     # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
-                    zero_val = float(zero_scaler[-1])  # 转成 Python float，避免 numpy 与 torch 混用
+                    zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
                     mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
                     outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
 
@@ -635,8 +829,20 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 outputs = outputs.detach().cpu().numpy()
                 batch_y = batch_y.detach().cpu().numpy()
                 if test_data.scale and self.args.inverse:
-                    outputs = test_data.inverse_transform(outputs)
-                    batch_y = test_data.inverse_transform(batch_y)
+                    if self.args.features == 'MS':
+                        target_idx = -1
+                        # 取出目标列的均值和尺度
+                        mean_t = float(test_data.scaler.mean_[target_idx])
+                        scale_t = float(test_data.scaler.scale_[target_idx])
+                        outputs_norm =  outputs[..., 0]
+                        outputs = (outputs_norm * scale_t + mean_t)[..., None]
+                        batch_y_norm = batch_y[..., 0]
+                        batch_y = (batch_y_norm * scale_t + mean_t)[..., None]
+                    else:
+                        outputs = test_data.inverse_transform(outputs)
+                        batch_y = test_data.inverse_transform(batch_y)
+                    # outputs = test_data.inverse_transform(outputs)
+                    # batch_y = test_data.inverse_transform(batch_y)
 
                 pred = outputs
                 true = batch_y
@@ -645,9 +851,21 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 trues.append(true)
                 inputx.append(batch_x.detach().cpu().numpy())
                 if i % 20 == 0:
-                    x = input_x.detach().cpu().numpy()
-                    gt = np.concatenate((x[0, :, -1], true[0, :, -1]), axis=0)
-                    pd = np.concatenate((x[0, :, -1], pred[0, :, -1]), axis=0)
+                    # x = input_x.detach().cpu().numpy()
+                    inputs = input_x.detach().cpu().numpy()
+                    if test_data.scale and self.args.inverse:
+                        if self.args.features == 'MS':
+                            target_idx = -1
+                            mean_t = float(test_data.scaler.mean_[target_idx])
+                            scale_t = float(test_data.scaler.scale_[target_idx])
+                            input_norm = inputs[..., target_idx]
+                            inputs = (input_norm * scale_t + mean_t)[..., None]
+                        else:
+                            shape = input.shape
+                            input = test_data.inverse_transform(input.squeeze(0)).reshape(shape)
+
+                    gt = np.concatenate((inputs[0, :, -1], true[0, :, -1]), axis=0)
+                    pd = np.concatenate((inputs[0, :, -1], pred[0, :, -1]), axis=0)
                     visual(gt, pd, os.path.join(folder_path, str(i) + '.pdf'))
         preds = np.array(preds)
         trues = np.array(trues)
@@ -680,6 +898,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
     def predict(self, setting, load=False):
         pred_data, pred_loader = self._get_data(flag='pred')
+        self.args.inverse = 1
+        print("inverse:", self.args.inverse)
 
         if self.args.pred_len == 1:
             self.args.adaptive_norm = 0
@@ -718,6 +938,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 if 'solar' in self.args.data.lower():
                     batch_time = batch_x[:, :, 0]
                     batch_x = batch_x[:, :, 1:]
+                    batch_y = batch_y[:, :, 1:]
                     pred_time = infer_time(batch_time, self.args.pred_len)
 
                 if 'Wind' in self.args.data or 'multi_wind' in self.args.data:
@@ -761,15 +982,28 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         if self.args.features == 'MS':
                             statistics_pred = statistics_pred[:, :, [self.args.enc_in - 1, -1]]
                         outputs = self.statistics_pred.de_normalize(outputs, statistics_pred)
-                        batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+                        # batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+                        if pred_data.scale and self.args.inverse:
+                            if self.args.features == 'MS':
+                                target_idx = -1
+                                # 取出目标列的均值和尺度
+                                mean_t = float(pred_data.scaler.mean_[target_idx])
+                                scale_t = float(pred_data.scaler.scale_[target_idx])
+                                outputs_norm = outputs[..., 0]
+                                outputs = (outputs_norm * scale_t + mean_t)[..., None]
+                            else:
+                                outputs = pred_data.inverse_transform(outputs)
 
                         # 获取缩放后的0
-                        zero_scaler = - pred_data.scaler.mean_ / pred_data.scaler.scale_
+                        if not self.args.inverse:
+                            zero_scaler = - pred_data.scaler.mean_[-1] / pred_data.scaler.scale_[-1]
+                        else:
+                            zero_scaler = 0
 
                         # 将时间戳信息重新cat到output上
                         outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
                         # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
-                        zero_val = float(zero_scaler[-1])  # 转成 Python float，避免 numpy 与 torch 混用
+                        zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
                         mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
                         outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
 
@@ -795,13 +1029,29 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     f_dim = -1 if self.args.features == 'MS' else 0
                     outputs = outputs[:, -self.args.pred_len:, f_dim:]
 
+                    if pred_data.scale and self.args.inverse:
+                        if self.args.features == 'MS':
+                            target_idx = -1
+                            # 取出目标列的均值和尺度
+                            mean_t = float(pred_data.scaler.mean_[target_idx])
+                            scale_t = float(pred_data.scaler.scale_[target_idx])
+                            outputs_norm = outputs[..., 0]
+                            outputs = (outputs_norm * scale_t + mean_t)[..., None]
+                        else:
+                            outputs = pred_data.inverse_transform(outputs)
+
                     # 获取缩放后的0
-                    zero_scaler = - pred_data.scaler.mean_ / pred_data.scaler.scale_
+                    # zero_scaler = - pred_data.scaler.mean_ / pred_data.scaler.scale_
+                    if not self.args.inverse:
+                        zero_scaler = - pred_data.scaler.mean_[-1] / pred_data.scaler.scale_[-1]
+                    else:
+                        zero_scaler = 0
+
 
                     # 将时间戳信息重新cat到output上
                     outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
                     # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
-                    zero_val = float(zero_scaler[-1])  # 转成 Python float，避免 numpy 与 torch 混用
+                    zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
                     mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
                     outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
 
