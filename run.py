@@ -196,6 +196,19 @@ if __name__ == '__main__':
         args.pe_layers = 1
         args.pre_epoch = 5
 
+    if args.model == 'TimeBridge' and 'wind' in args.data.lower():
+        args.enc_in = 17
+        args.adaptive_norm = 0
+        args.ca_layers = 1
+        args.pd_layers = 2
+        args.ia_layers = 4
+        args.d_model = 512
+        args.d_ff = 256
+        args.alpha = 0.35
+        if args.seq_len == 512:
+            args.period = 16
+            args.adaptive_norm = 1
+
     if args.is_training:
         for ii in range(args.itr):
             # setting record of experiments
@@ -231,8 +244,8 @@ if __name__ == '__main__':
         exp = Exp(args)  # set experiments
         print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
         start_time = time.time()
-        # exp.test(setting, test=1)
-        exp.predict(setting,load=True)
+        exp.test(setting, test=1)
+        # exp.predict(setting,load=True)
         end_time = time.time()
         print(f"运行时间: {end_time - start_time:.4f} 秒")
         torch.cuda.empty_cache()

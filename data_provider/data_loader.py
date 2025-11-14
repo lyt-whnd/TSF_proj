@@ -596,8 +596,17 @@ class Dataset_Pred(Dataset):
         df_raw = pd.read_excel(os.path.join(self.root_path,
                                             self.data_path))
         # 将数据发电量放在最后一列
-        col = df_raw.pop("data")
-        df_raw['data'] = col
+        # if 'solar' in self.data_path.lower():
+        #     col = df_raw.pop("data")
+        #     df_raw['data'] = col
+        #     self.target = 'data'
+        # if 'wind' in self.data_path.lower():
+        #     df_raw = df_raw.drop(columns=["domain_id"])
+        #     if 'date' not in df_raw.columns and '统计时间' in df_raw.columns:
+        #           df_raw = df_raw.rename(columns={"统计时间": "date"})
+        #     if 'date' not in df_raw.columns:
+        #           raise ValueError("数据中必须包含时间列 'date'（或原名 '统计时间'）。")
+        #     self.target = "电网有功功率(kW)"
         '''
         df_raw.columns: ['date', ...(other features), target feature]
         '''
@@ -735,8 +744,12 @@ class Dataset_wind_multi_domain(Dataset):
         self.timeenc = timeenc
         self.freq = freq
         self.domain_col = 'domain_id'
-        self.step_minutes = 10
-        self.gap_mult = 2
+        if "hour" in data_path:
+            self.step_minutes = 60
+            self.gap_mult = 2
+        else:
+            self.step_minutes = 10
+            self.gap_mult = 2
         self.start_domains = None
 
         self.root_path = root_path
@@ -820,8 +833,8 @@ class Dataset_wind_multi_domain(Dataset):
         for d, g in df_raw.groupby(self.domain_col, sort=False):
             n = len(g)
         #将训练与所有数据全部进行归一化
-            # n_tr = int(n)
-            n_tr = int(n * 0.8)
+            n_tr = int(n)
+            # n_tr = int(n * 0.8)
             # # 训练段是该域的前 70%（按时间）
             idx = g.index.values
             train_mask_all[idx[:n_tr]] = True
@@ -846,8 +859,8 @@ class Dataset_wind_multi_domain(Dataset):
             n_va = n - n_tr - n_te
             # # 三段边界（域内）
             b1s = [0, n_tr - self.seq_len, n - n_te - self.seq_len]
-            b2s = [n_tr, n_tr + n_va, n]
-            # b2s = [n, n_tr + n_va, n]
+            # b2s = [n_tr, n_tr + n_va, n]
+            b2s = [n, n_tr + n_va, n]
             # if d == 'X03':
             #     b1s = [0, n_tr - self.seq_len, n - n_te - self.seq_len]
             #     b2s = [n_tr, n_tr + n_va, n]

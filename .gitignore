@@ -170,3 +170,7 @@ test_results/
 /test_results/
 /results/
 /logs/
+/dataset/
+/checkpoints/
+/backup.tar.gz
+/checkpoints_wind_models.tar.gz

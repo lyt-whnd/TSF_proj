@@ -707,3 +707,63 @@ mse:0.027741383761167526, mse:0.08196153491735458, rmse:0.1665574461221695, mape
 solar_data_CycleNet_solar_data_ftMS_sl96_ll48_pl24  
 mse:479565.25, mse:336.193359375, rmse:692.5064697265625, mape:nan, mspe:nan
 
+wind_10min_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl3072_ll48_pl6  
+mse:0.18309126794338226, mse:0.2779432237148285, rmse:0.42789164185523987, mape:0.48014625906944275, mspe:4040.580810546875
+
+wind_10min_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl3072_ll48_pl720  
+mse:0.6344680786132812, mse:0.5690118074417114, rmse:0.796535074710846, mape:0.801077127456665, mspe:9687.3486328125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl720_ll48_pl1  
+mse:0.16040439903736115, mse:0.27650436758995056, rmse:0.4005051851272583, mape:0.49880123138427734, mspe:37772.0
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl720_ll48_pl120  
+mse:0.7233327031135559, mse:0.6493486762046814, rmse:0.8504896759986877, mape:0.898676335811615, mspe:25202.875
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl512_ll48_pl1  
+mse:0.15061429142951965, mse:0.261848509311676, rmse:0.388090580701828, mape:0.47783902287483215, mspe:2264.423828125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl720_ll48_pl1  
+mse:0.15893079340457916, mse:0.27044686675071716, rmse:0.3986612558364868, mape:0.49920353293418884, mspe:84129.3203125
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl120  
+mse:0.19627471268177032, mse:0.29239392280578613, rmse:0.4430290162563324, mape:0.5226772427558899, mspe:1727.373291015625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl1  
+mse:0.08751354366540909, mse:0.18312591314315796, rmse:0.29582688212394714, mape:0.38169267773628235, mspe:788.79638671875
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl12  
+mse:0.20187734067440033, mse:0.29570621252059937, rmse:0.4493076205253601, mape:0.5174151062965393, mspe:981.6019287109375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl24  
+mse:0.14831267297267914, mse:0.23893943428993225, rmse:0.38511383533477783, mape:0.4544108211994171, mspe:14154.8984375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl24  
+mse:0.22067444026470184, mse:0.30584579706192017, rmse:0.4697599709033966, mape:0.5248153805732727, mspe:1155.8685302734375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl72  
+mse:0.17075948417186737, mse:0.2648586332798004, rmse:0.4132305383682251, mape:0.49009478092193604, mspe:6815.740234375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl72  
+mse:0.2399270385503769, mse:0.32639798521995544, rmse:0.48982349038124084, mape:0.546471357345581, mspe:1116.7825927734375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl120  
+mse:0.28417226672172546, mse:0.34907495975494385, rmse:0.533078134059906, mape:0.5698534846305847, mspe:1268.52001953125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl24  
+mse:0.2020788937807083, mse:0.2733241617679596, rmse:0.4495318531990051, mape:0.4768410325050354, mspe:621.14892578125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl72  
+mse:0.2558026611804962, mse:0.3269047439098358, rmse:0.5057693719863892, mape:0.5472436547279358, mspe:1044.9576416015625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl1  
+mse:0.09397481381893158, mse:0.18672962486743927, rmse:0.3065531253814697, mape:0.38807186484336853, mspe:3528.801513671875
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl24  
+mse:0.4837673008441925, mse:0.46827417612075806, rmse:0.695533812046051, mape:0.6786201596260071, mspe:94603.96875
+
+wind_1hour_multi_domain_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl72  
+mse:0.6809170246124268, mse:0.5710671544075012, rmse:0.8251769542694092, mape:0.7760213017463684, mspe:130044.2421875
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl12  
+mse:0.32797345519065857, mse:0.3748795986175537, rmse:0.5726896524429321, mape:0.5826056003570557, mspe:72449.8828125
+

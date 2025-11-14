@@ -17,7 +17,7 @@ data_dict = {
 }
 
 #是否要进行多域随机采样
-sampler_flag = False
+sampler_flag = True
 print("是否进行多域随机采样：",sampler_flag)
 
 

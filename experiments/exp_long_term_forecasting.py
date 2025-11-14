@@ -287,17 +287,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     loss = criterion(pred, true)
                 total_loss.append(loss.cpu().item())
 
-                # --- per-batch per-domain loss logging ---
-                with torch.no_grad():
-                    doms, counts = torch.unique(env_id, return_counts=True)
-                    msg = []
-                    for d in doms:
-                        mask = (env_id == d)
-                        if mask.any():
-                            did = d.item()
-                            dom_loss = criterion(outputs[mask], batch_y[mask]).item()
-                            msg.append(f"domain {int(d.item())}: {dom_loss:.6f} (n={int(mask.sum().item())})")
-                            vali_domain_loss[did].append(dom_loss)
+                # if env_id is not None:
+                # # --- per-batch per-domain loss logging ---
+                #     with torch.no_grad():
+                #         doms, counts = torch.unique(env_id, return_counts=True)
+                #         msg = []
+                #         for d in doms:
+                #             mask = (env_id == d)
+                #             if mask.any():
+                #                 did = d.item()
+                #                 dom_loss = criterion(outputs[mask], batch_y[mask]).item()
+                #                 msg.append(f"domain {int(d.item())}: {dom_loss:.6f} (n={int(mask.sum().item())})")
+                #                 vali_domain_loss[did].append(dom_loss)
 
         total_loss = np.average(total_loss)
         self.model.train()
@@ -337,7 +338,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         self._select_criterion()
 
         use_IRM_flag = False  # 是否使用IRM正则化
-        use_VREX_flag = True  # 是否使用V-REx风险外推正则（Risk Extrapolation, variance of per-domain risks）
+        use_VREX_flag = False  # 是否使用V-REx风险外推正则（Risk Extrapolation, variance of per-domain risks）
         # 测试batch size大小
         print(">>> train_loader.batch_size =", getattr(train_loader, "batch_size", None))
         print(">>> test_loader.batch_size =", getattr(test_loader, "batch_size", None))
@@ -400,6 +401,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 if 'Wind' in self.args.data or 'mutli_wind' in self.args.data:
                     batch_x_mark = None
                     batch_y_mark = None
+                    env_id = env_id.to(self.device)
                 else:
                     batch_x_mark = batch_x_mark.float().to(self.device)
                     batch_y_mark = batch_y_mark.float().to(self.device)
@@ -489,6 +491,19 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         else:
                             loss = self.criterion(outputs, batch_y)
                         train_loss.append(loss.item())
+                        if env_id is not None:
+                            # --- per-batch per-domain loss logging ---
+                            with torch.no_grad():
+                                doms, counts = torch.unique(env_id, return_counts=True)
+                                msg = []
+                                for d in doms:
+                                    mask = (env_id == d)
+                                    if mask.any():
+                                        did = d.item()
+                                        dom_loss = self.criterion(outputs[mask], batch_y[mask]).item()
+                                        msg.append(
+                                            f"domain {int(d.item())}: {dom_loss:.6f} (n={int(mask.sum().item())})")
+                                        train_domain_loss[did].append(dom_loss)
                 else:
 
                     # channel_decoder input
@@ -560,21 +575,27 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     #     loss = self.criterion(outputs, batch_y)
 
                     train_loss.append(loss.item())
+                    if env_id is not None:
+                        # --- per-batch per-domain loss logging ---
+                        with torch.no_grad():
+                            doms, counts = torch.unique(env_id, return_counts=True)
+                            msg = []
+                            for d in doms:
+                                mask = (env_id == d)
+                                if mask.any():
+                                    did = d.item()
+                                    dom_loss = self.criterion(outputs[mask], batch_y[mask]).item()
+                                    msg.append(f"domain {int(d.item())}: {dom_loss:.6f} (n={int(mask.sum().item())})")
+                                    train_domain_loss[did].append(dom_loss)
 
-                    # --- per-batch per-domain loss logging ---
-                    with torch.no_grad():
-                        doms, counts = torch.unique(env_id, return_counts=True)
-                        msg = []
-                        for d in doms:
-                            mask = (env_id == d)
-                            if mask.any():
-                                did = d.item()
-                                dom_loss = self.criterion(outputs[mask], batch_y[mask]).item()
-                                msg.append(f"domain {int(d.item())}: {dom_loss:.6f} (n={int(mask.sum().item())})")
-                                train_domain_loss[did].append(dom_loss)
-
-                if (i + 1) % 100 == 0:
+                if (i + 1) % 1000 == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
+                    # 打印个DataLoader中的各个域的损失
+                    if self.args.adaptive_norm:
+                        if epoch > 5:
+                            print(f"[train batch {i + 1}] " + "; ".join(msg))
+                    else:
+                        print(f"[train batch {i + 1}] " + "; ".join(msg))
                     speed = (time.time() - time_now) / iter_count
                     left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
                     print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
@@ -611,6 +632,14 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
+            if env_id is not None:
+                # 打印每个域的损失
+                train_domain_loss = dict(sorted(train_domain_loss.items()))
+
+                for d, domian_loss in train_domain_loss.items():
+                    print("Epoch: {0},domian:{1},总损失为:{2:.7f}".format(epoch + 1, d, np.average(domian_loss)))
+                train_domain_loss_plot = {k: np.average(v) for k, v in train_domain_loss.items()}
+
             vali_loss = self.vali(vali_data, vali_loader, self.criterion,epoch)
             # test_loss = 0
             test_loss = self.vali(test_data, test_loader, self.criterion,epoch)
@@ -715,7 +744,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         if self.args.adaptive_norm:
             self.statistics_pred.eval()
         with torch.no_grad():
-            for i, (batch_x, batch_y, batch_x_mark, batch_y_mark,batch_cycle) in enumerate(test_loader):
+            # for i, (batch_x, batch_y, batch_x_mark, batch_y_mark,batch_cycle) in enumerate(test_loader):
+            #     batch_x = batch_x.float().to(self.device)
+            #     batch_y = batch_y.float().to(self.device)
+            for i, batch in enumerate(test_loader):
+                batch_x, batch_y, batch_x_mark, batch_y_mark, batch_cycle, *rest = batch
+                env_id = rest[0] if rest else None
                 batch_x = batch_x.float().to(self.device)
                 batch_y = batch_y.float().to(self.device)
                 if 'solar' in self.args.data.lower():
@@ -737,10 +771,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     else:
                         batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
 
-                    batch_x_mark = batch_x_mark.float().to(self.device)
-                    batch_y_mark = batch_y_mark.float().to(self.device)
                     # decoder input
-                    dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
+                    dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float().to(self.device)
                     dec_label = batch_x[:, -self.args.label_len:, :]
                     dec_inp = torch.cat([dec_label, dec_inp], dim=1).float().to(self.device)
 
@@ -766,21 +798,22 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         outputs = self.statistics_pred.de_normalize(outputs, statistics_pred)
                         batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
 
-                        # 获取缩放后的0
-                        if not self.args.inverse:
-                            zero_scaler = - test_data.scaler.mean_[-1] / test_data.scaler.scale_[-1]
-                        else:
-                            zero_scaler = 0
+                        if 'solar' in self.args.data.lower():
+                            # 获取缩放后的0
+                            if not self.args.inverse:
+                                zero_scaler = - test_data.scaler.mean_[-1] / test_data.scaler.scale_[-1]
+                            else:
+                                zero_scaler = 0
 
-                        # 将时间戳信息重新cat到output上
-                        outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
-                        # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
-                        zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
-                        mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
-                        outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
+                            # 将时间戳信息重新cat到output上
+                            outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
+                            # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
+                            zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
+                            mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
+                            outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
 
-                        # 去掉tensor中时间的列
-                        outputs = outputs[:, :, 1:]
+                            # 去掉tensor中时间的列
+                            outputs = outputs[:, :, 1:]
 
 
                 else:
@@ -809,21 +842,22 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     outputs = outputs[:, -self.args.pred_len:, f_dim:]
                     batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
 
-                    # 获取缩放后的0
-                    if not self.args.inverse:
-                        zero_scaler = - test_data.scaler.mean_[-1] / test_data.scaler.scale_[-1]
-                    else:
-                        zero_scaler = 0
+                    if 'solar' in self.args.data.lower():
+                        # 获取缩放后的0
+                        if not self.args.inverse:
+                            zero_scaler = - test_data.scaler.mean_[-1] / test_data.scaler.scale_[-1]
+                        else:
+                            zero_scaler = 0
 
-                    # 将时间戳信息重新cat到output上
-                    outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
-                    # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
-                    zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
-                    mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
-                    outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
+                        # 将时间戳信息重新cat到output上
+                        outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
+                        # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
+                        zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
+                        mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
+                        outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
 
-                    # 去掉tensor中时间的列
-                    outputs = outputs[:, :, 1:]
+                        # 去掉tensor中时间的列
+                        outputs = outputs[:, :, 1:]
 
 
                 outputs = outputs.detach().cpu().numpy()
@@ -913,9 +947,13 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         )
 
         if load:
-            path = os.path.join(self.args.checkpoints, setting)
-            best_model_path = path + '/' + 'checkpoint.pth'
-            self.model.load_state_dict(torch.load(best_model_path))
+            print(f'loading model on {self.device}')
+            checkpoint_path = os.path.join('./checkpoints/' + setting, 'checkpoint.pth')
+            ckpt = torch.load(checkpoint_path, map_location=self.device)
+            state_dict = ckpt.get("model", ckpt)
+            msg = self.model.load_state_dict(state_dict, strict=False)
+            print("missing:", msg.missing_keys)
+            print("unexpected:", msg.unexpected_keys)
             if self.args.adaptive_norm:
                 path_station = './station/' + '{}_s{}_p{}_{}_m'.format(self.args.data, self.args.seq_len,
                                                                        self.args.pred_len, self.args.model)
@@ -955,8 +993,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     else:
                         batch_x, statistics_pred = self.statistics_pred.normalize(batch_x)
 
-                    batch_x_mark = batch_x_mark.float().to(self.device)
-                    batch_y_mark = batch_y_mark.float().to(self.device)
                     # decoder input
                     dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float()
                     dec_label = batch_x[:, -self.args.label_len:, :]
@@ -994,21 +1030,22 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                             else:
                                 outputs = pred_data.inverse_transform(outputs)
 
-                        # 获取缩放后的0
-                        if not self.args.inverse:
-                            zero_scaler = - pred_data.scaler.mean_[-1] / pred_data.scaler.scale_[-1]
-                        else:
-                            zero_scaler = 0
+                        if 'solar' in self.args.data.lower():
+                            # 获取缩放后的0
+                            if not self.args.inverse:
+                                zero_scaler = - pred_data.scaler.mean_[-1] / pred_data.scaler.scale_[-1]
+                            else:
+                                zero_scaler = 0
 
-                        # 将时间戳信息重新cat到output上
-                        outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
-                        # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
-                        zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
-                        mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
-                        outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
+                            # 将时间戳信息重新cat到output上
+                            outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
+                            # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
+                            zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
+                            mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
+                            outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
 
-                        # 去掉tensor中时间的列
-                        outputs = outputs[:, :, 1:]
+                            # 去掉tensor中时间的列
+                            outputs = outputs[:, :, 1:]
 
                 else:
                     if "Cycle" in self.args.model:
@@ -1040,23 +1077,24 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         else:
                             outputs = pred_data.inverse_transform(outputs)
 
-                    # 获取缩放后的0
-                    # zero_scaler = - pred_data.scaler.mean_ / pred_data.scaler.scale_
-                    if not self.args.inverse:
-                        zero_scaler = - pred_data.scaler.mean_[-1] / pred_data.scaler.scale_[-1]
-                    else:
-                        zero_scaler = 0
+                    if 'solar' in self.args.data.lower():
+                        # 获取缩放后的0
+                        # zero_scaler = - pred_data.scaler.mean_ / pred_data.scaler.scale_
+                        if not self.args.inverse:
+                            zero_scaler = - pred_data.scaler.mean_[-1] / pred_data.scaler.scale_[-1]
+                        else:
+                            zero_scaler = 0
 
 
-                    # 将时间戳信息重新cat到output上
-                    outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
-                    # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
-                    zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
-                    mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
-                    outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
+                        # 将时间戳信息重新cat到output上
+                        outputs = torch.cat((pred_time.unsqueeze(-1), outputs), dim=-1)
+                        # 更改 tensor 中的目标通道：若小时在 0-6 或 18-23，则将对应位置改为 "原始值 0 经 scaler 后的数值"
+                        zero_val = float(zero_scaler)  # 转成 Python float，避免 numpy 与 torch 混用
+                        mask = (outputs[:, :, 0] <= 6) | (outputs[:, :, 0] >= 18)  # [B, L] 布尔掩码
+                        outputs[:, :, -1] = outputs[:, :, -1].masked_fill(mask, zero_val)
 
-                    # 去掉tensor中时间的列
-                    outputs = outputs[:, :, 1:]
+                        # 去掉tensor中时间的列
+                        outputs = outputs[:, :, 1:]
 
                 pred = outputs.detach().cpu().numpy()  # .squeeze()
                 preds.append(pred)
