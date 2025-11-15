@@ -1,23 +1,36 @@
-export CUDA_VISIBLE_DEVICES=1
-for pred_len in 1; do
-  python run.py \
+model_name=TimeBridge
+seq_len=192
+GPU=1
+
+
+alpha=0.35
+for pred_len in 24
+do
+  CUDA_VISIBLE_DEVICES=$GPU \
+  python -u run.py \
     --is_training 0 \
-    --seq_len 96 \
+    --root_path ./dataset/Wind_data/ \
+    --data_path wind_data_c25a71168b0646d3b811ba1d553c94cc.xlsx\
+    --model_id wind_1hour_multi_domain_no_norm \
+    --model $model_name \
+    --data Wind_multi_domain \
+    --features MS \
+    --seq_len $seq_len \
     --label_len 48 \
     --pred_len $pred_len \
-    --model_id test1 \
-    --model CycleNet \
-    --data solar_data \
-    --root_path ./dataset/Solar_Power/ \
-    --data_path solar_data_80a7415eb35e48378ab8220c12aa7327_副本.xlsx \
-    --features MS \
-    --enc_in 12 \
+    --enc_in 17 \
+    --ca_layers 1 \
+    --pd_layers 2 \
+    --ia_layers 4 \
+    --des 'Exp' \
+    --d_model 512 \
+    --d_ff 256 \
     --batch_size 64 \
-    --period_len 12 \
-    --twice_epoch 1 \
-    --j 1 \
-    --pd_ff 256 \
-    --pe_layers 1 \
-    --adaptive_norm 1 \
-    --itr 1
-  done
+    --alpha $alpha \
+    --learning_rate 0.0002 \
+    --target 'data' \
+    --train_epochs 100 \
+    --patience 3 \
+    --adaptive_norm 0 \
+    --itr 1 | tee logs/LongForecasting/TimeBridge/$data_name'_'$alpha'_'$model_name'_'$pred_len.logs
+done

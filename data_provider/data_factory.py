@@ -55,7 +55,7 @@ def data_provider(args, flag):
     )
     print(flag, len(data_set))
     print(batch_size)
-    if sampler_flag and 'wind' in args.data.lower():
+    if sampler_flag and 'wind' in args.data.lower() and args.is_training:
         domains = np.unique(data_set.start_domains)
         d2i = {int(d): np.where(data_set.start_domains == d)[0].tolist() for d in domains}
         sampler = BalancedBatchSampler(d2i, batch_size=batch_size, domains_per_batch=8,drop_last=drop_last,shuffle=shuffle_flag)

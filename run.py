@@ -244,8 +244,8 @@ if __name__ == '__main__':
         exp = Exp(args)  # set experiments
         print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
         start_time = time.time()
-        exp.test(setting, test=1)
-        # exp.predict(setting,load=True)
+        # exp.test(setting, test=1)
+        exp.predict(setting,load=True)
         end_time = time.time()
         print(f"运行时间: {end_time - start_time:.4f} 秒")
         torch.cuda.empty_cache()

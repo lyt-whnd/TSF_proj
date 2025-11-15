@@ -593,20 +593,24 @@ class Dataset_Pred(Dataset):
         self.scaler = StandardScaler()
         # df_raw = pd.read_csv(os.path.join(self.root_path,
         #                                   self.data_path))
-        df_raw = pd.read_excel(os.path.join(self.root_path,
-                                            self.data_path))
+        if 'xlsx' in self.data_path:
+            df_raw = pd.read_excel(os.path.join(self.root_path,
+                                                self.data_path))
+        elif 'csv' in self.data_path:
+            df_raw = pd.read_csv(os.path.join(self.root_path,
+                                              self.data_path))
         # 将数据发电量放在最后一列
-        # if 'solar' in self.data_path.lower():
-        #     col = df_raw.pop("data")
-        #     df_raw['data'] = col
-        #     self.target = 'data'
-        # if 'wind' in self.data_path.lower():
-        #     df_raw = df_raw.drop(columns=["domain_id"])
-        #     if 'date' not in df_raw.columns and '统计时间' in df_raw.columns:
-        #           df_raw = df_raw.rename(columns={"统计时间": "date"})
-        #     if 'date' not in df_raw.columns:
-        #           raise ValueError("数据中必须包含时间列 'date'（或原名 '统计时间'）。")
-        #     self.target = "电网有功功率(kW)"
+        if 'solar' in self.data_path.lower():
+            col = df_raw.pop("data")
+            df_raw['data'] = col
+            self.target = 'data'
+        if 'wind' in self.data_path.lower():
+            df_raw = df_raw.drop(columns=["domain_id"])
+            if 'date' not in df_raw.columns and '统计时间' in df_raw.columns:
+                  df_raw = df_raw.rename(columns={"统计时间": "date"})
+            if 'date' not in df_raw.columns:
+                  raise ValueError("数据中必须包含时间列 'date'（或原名 '统计时间'）。")
+            self.target = "电网有功功率(kW)"
         '''
         df_raw.columns: ['date', ...(other features), target feature]
         '''
@@ -678,7 +682,7 @@ class Dataset_Pred(Dataset):
                 self.data_y = np.concatenate(
                     (df_timestamp['hour'].values.reshape(border2 - border1, 1), data[border1:border2]), axis=1)
             else:
-                self.data_y = data.values[border1:border2]
+                self.data_y = data[border1:border2]
         self.data_stamp = data_stamp
 
         # add cycle

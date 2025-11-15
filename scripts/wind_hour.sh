@@ -1,6 +1,6 @@
 export CUDA_VISIBLE_DEVICES=1
 model_name=iTransformer
-for pred_len in 1 120
+for pred_len in 12 24 72
 do
   python -u run.py \
     --is_training 1 \
@@ -22,12 +22,12 @@ do
     --d_ff 512 \
     --patience 3 \
     --adaptive_norm 0 \
-    --itr 1 | tee logs/LongForecasting/$model_name'VREX_''Wind_multi_domain'$pred_len.log
+    --itr 1
 done
 
 
 
-for pred_len in 1 120
+for pred_len in 12 24 72
 do
   python -u run.py \
     --is_training 1 \
@@ -49,10 +49,10 @@ do
     --d_ff 512 \
     --patience 3 \
     --adaptive_norm 0 \
-    --itr 1 | tee logs/LongForecasting/$model_name'VREX_''Wind_multi_domain'$pred_len.log
+    --itr 1
 done
 
-for pred_len in 1 120
+for pred_len in 12 24 72
 do
   python -u run.py \
     --is_training 1 \
@@ -74,10 +74,10 @@ do
     --d_ff 512 \
     --patience 3 \
     --adaptive_norm 0 \
-    --itr 1 | tee logs/LongForecasting/$model_name'VREX_''Wind_multi_domain'$pred_len.log
+    --itr 1
 done
 
-for pred_len in 1 120
+for pred_len in 12 24 72
 do
   python -u run.py \
     --is_training 1 \
@@ -99,10 +99,10 @@ do
     --d_ff 512 \
     --patience 3 \
     --adaptive_norm 0 \
-    --itr 1 | tee logs/LongForecasting/$model_name'VREX_''Wind_multi_domain'$pred_len.log
+    --itr 1
 done
 
-for pred_len in 1 120
+for pred_len in 12 24 72
 do
   python -u run.py \
     --is_training 1 \
@@ -124,5 +124,5 @@ do
     --d_ff 512 \
     --patience 3 \
     --adaptive_norm 0 \
-    --itr 1 | tee logs/LongForecasting/$model_name'VREX_''Wind_multi_domain'$pred_len.log
+    --itr 1
 done
