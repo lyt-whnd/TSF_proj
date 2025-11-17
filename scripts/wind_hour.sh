@@ -1,9 +1,9 @@
 export CUDA_VISIBLE_DEVICES=1
 model_name=iTransformer
-for pred_len in 12 24 72
+for pred_len in 12 24 72 120
 do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv\
     --model_id wind_1hour_multi_domain_no_norm \
@@ -27,10 +27,10 @@ done
 
 
 
-for pred_len in 12 24 72
+for pred_len in 12 24 72 120
 do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv \
     --model_id wind_1hour_multi_domain_no_norm \
@@ -52,10 +52,10 @@ do
     --itr 1
 done
 
-for pred_len in 12 24 72
+for pred_len in 12 24 72 120
 do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv \
     --model_id wind_1hour_multi_domain_no_norm \
@@ -77,10 +77,10 @@ do
     --itr 1
 done
 
-for pred_len in 12 24 72
+for pred_len in 12 24 72 120
 do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv \
     --model_id wind_1hour_multi_domain_no_norm \
@@ -102,10 +102,10 @@ do
     --itr 1
 done
 
-for pred_len in 12 24 72
+for pred_len in 12 24 72 120
 do
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv \
     --model_id wind_1hour_multi_domain_no_norm \

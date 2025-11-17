@@ -174,3 +174,5 @@ test_results/
 /checkpoints/
 /backup.tar.gz
 /checkpoints_wind_models.tar.gz
+/wind_models.tar.gz
+/光伏风力结果文件.txt

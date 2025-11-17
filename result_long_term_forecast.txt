@@ -845,3 +845,342 @@ mse:0.55496746301651, mse:0.5663098692893982, rmse:0.7449613809585571, mape:0.80
 wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl1  
 mse:0.1201145350933075, mse:0.22656701505184174, rmse:0.34657543897628784, mape:0.44836878776550293, mspe:50008.33203125
 
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl12  
+mse:0.11117444932460785, mse:0.1979975551366806, rmse:0.3334283232688904, mape:0.39622917771339417, mspe:6184.130859375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl12  
+mse:0.42063820362091064, mse:0.46773624420166016, rmse:0.6485662460327148, mape:0.7013090252876282, mspe:57476.90625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl24  
+mse:0.5226815342903137, mse:0.5311396718025208, rmse:0.7229671478271484, mape:0.7633844614028931, mspe:28870.384765625
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl24  
+mse:0.13931579887866974, mse:0.22838760912418365, rmse:0.3732503056526184, mape:0.4386615455150604, mspe:5070.5830078125
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl72  
+mse:0.615908145904541, mse:0.6158501505851746, rmse:0.7847981452941895, mape:0.8546257019042969, mspe:23690.12109375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl120  
+mse:0.6633747816085815, mse:0.6455702185630798, rmse:0.8144782185554504, mape:0.8922893404960632, mspe:20848.501953125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl72  
+mse:0.1681034117937088, mse:0.26380735635757446, rmse:0.4100041687488556, mape:0.48862043023109436, mspe:2290.87451171875
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl12  
+mse:0.16930925846099854, mse:0.25373706221580505, rmse:0.41147205233573914, mape:0.460527628660202, mspe:530.2318725585938
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl24  
+mse:0.18802380561828613, mse:0.26266029477119446, rmse:0.43361711502075195, mape:0.46695950627326965, mspe:505.2016906738281
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl72  
+mse:0.24735905230045319, mse:0.3187747895717621, rmse:0.4973520338535309, mape:0.538534939289093, mspe:897.2376098632812
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl12  
+mse:0.35759541392326355, mse:0.3791736364364624, rmse:0.5979928374290466, mape:0.5820302963256836, mspe:87025.984375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl24  
+mse:0.46620237827301025, mse:0.4607640206813812, rmse:0.6827901601791382, mape:0.6714394092559814, mspe:96809.921875
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl72  
+mse:0.6535477042198181, mse:0.5679873824119568, rmse:0.8084229826927185, mape:0.7797189950942993, mspe:118562.5703125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl512_ll48_pl12  
+mse:0.37047359347343445, mse:0.42025744915008545, rmse:0.608665406703949, mape:0.6384095549583435, mspe:3454.30224609375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl512_ll48_pl24  
+mse:0.43191319704055786, mse:0.46699076890945435, rmse:0.6572010517120361, mape:0.6851938366889954, mspe:14281.5830078125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl512_ll48_pl72  
+mse:0.5365169644355774, mse:0.5377497673034668, rmse:0.7324731945991516, mape:0.767608106136322, mspe:10245.583984375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl720_ll48_pl12  
+mse:0.4834406077861786, mse:0.49534425139427185, rmse:0.6952989101409912, mape:0.7370826601982117, mspe:48030.80078125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl720_ll48_pl24  
+mse:0.5239527225494385, mse:0.5198617577552795, rmse:0.7238457798957825, mape:0.7600176930427551, mspe:48070.57421875
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl720_ll48_pl72  
+mse:0.6487340927124023, mse:0.6040558218955994, rmse:0.8054403066635132, mape:0.8509193658828735, mspe:37762.765625
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl12  
+mse:0.03929087519645691, mse:0.1432848423719406, rmse:0.19821925461292267, mape:0.34632205963134766, mspe:1141.3411865234375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl24  
+mse:0.059352435171604156, mse:0.17437098920345306, rmse:0.2436235547065735, mape:0.4055185914039612, mspe:2829.288818359375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl72  
+mse:0.09195913374423981, mse:0.21597085893154144, rmse:0.3032476305961609, mape:0.4740627408027649, mspe:2448.06201171875
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl120  
+mse:0.10473360866308212, mse:0.23266075551509857, rmse:0.32362571358680725, mape:0.4874647557735443, mspe:491.26312255859375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl12  
+mse:0.05018805339932442, mse:0.15992705523967743, rmse:0.2240269035100937, mape:0.3642457127571106, mspe:1716.1500244140625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl1  
+mse:0.059062808752059937, mse:0.15803372859954834, rmse:0.2430284172296524, mape:0.36256349086761475, mspe:435.83209228515625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl12  
+mse:0.07762031257152557, mse:0.19188840687274933, rmse:0.2786042094230652, mape:0.4551335275173187, mspe:834.6553955078125
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl24  
+mse:0.09432011097669601, mse:0.21218998730182648, rmse:0.3071157932281494, mape:0.4726671278476715, mspe:884.798828125
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl72  
+mse:0.1067790538072586, mse:0.23277105391025543, rmse:0.3267706334590912, mape:0.4880501627922058, mspe:1178.2274169921875
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl120  
+mse:0.12017461657524109, mse:0.24731110036373138, rmse:0.34666210412979126, mape:0.49843674898147583, mspe:286.4398193359375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl1  
+mse:0.05523183196783066, mse:0.15170128643512726, rmse:0.23501454293727875, mape:0.33649590611457825, mspe:557.5989379882812
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl12  
+mse:0.10174982994794846, mse:0.2203679233789444, rmse:0.31898248195648193, mape:0.4789941608905792, mspe:731.025146484375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl24  
+mse:0.09842205047607422, mse:0.21796418726444244, rmse:0.3137228786945343, mape:0.46484819054603577, mspe:1822.3880615234375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl72  
+mse:0.10075294226408005, mse:0.22543089091777802, rmse:0.3174160420894623, mape:0.47401121258735657, mspe:888.4644775390625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl120  
+mse:0.10505589842796326, mse:0.23398025333881378, rmse:0.3241232633590698, mape:0.4665263891220093, mspe:234.76239013671875
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl1  
+mse:0.02890588901937008, mse:0.11428367346525192, rmse:0.1700173169374466, mape:0.31412792205810547, mspe:18.583925247192383
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl12  
+mse:0.07093217223882675, mse:0.1835414171218872, rmse:0.2663309574127197, mape:0.40751150250434875, mspe:671.1743774414062
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl24  
+mse:0.10000860691070557, mse:0.22618374228477478, rmse:0.31624138355255127, mape:0.46528786420822144, mspe:589.501953125
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl72  
+mse:0.10635854303836823, mse:0.2402212768793106, rmse:0.3261265754699707, mape:0.4886808693408966, mspe:990.8772583007812
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl120  
+mse:0.09406070411205292, mse:0.2253665030002594, rmse:0.3066931664943695, mape:0.4718482792377472, mspe:329.2454833984375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl1  
+mse:0.04291387274861336, mse:0.13117869198322296, rmse:0.20715664327144623, mape:0.3239796459674835, mspe:3903.728271484375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl12  
+mse:0.09741072356700897, mse:0.2147183120250702, rmse:0.3121069073677063, mape:0.4698752462863922, mspe:1670.356689453125
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl24  
+mse:0.10644886642694473, mse:0.21563568711280823, rmse:0.32626503705978394, mape:0.46892666816711426, mspe:6130.294921875
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl72  
+mse:0.1531679481267929, mse:0.2817624509334564, rmse:0.39136677980422974, mape:0.5029813051223755, mspe:1111.5863037109375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl120  
+mse:0.12113744765520096, mse:0.24662354588508606, rmse:0.34804806113243103, mape:0.4431115984916687, mspe:1598.5699462890625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl1  
+mse:0.11724597215652466, mse:0.22332267463207245, rmse:0.34241199493408203, mape:0.44018658995628357, mspe:28.646915435791016
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl12  
+mse:0.11099278181791306, mse:0.22806164622306824, rmse:0.3331557810306549, mape:0.4248094856739044, mspe:46.5933837890625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl1  
+mse:0.11724597215652466, mse:0.22332267463207245, rmse:0.34241199493408203, mape:0.44018661975860596, mspe:28.646915435791016
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl12  
+mse:0.11099278181791306, mse:0.22806164622306824, rmse:0.3331557810306549, mape:0.4248094856739044, mspe:46.5933837890625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl24  
+mse:0.13440072536468506, mse:0.25691330432891846, rmse:0.36660704016685486, mape:0.46617478132247925, mspe:53.5742073059082
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl72  
+mse:0.14639820158481598, mse:0.2733900547027588, rmse:0.3826201856136322, mape:0.4663749635219574, mspe:34.655460357666016
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl120  
+mse:0.16424249112606049, mse:0.28803375363349915, rmse:0.40526843070983887, mape:0.4780084192752838, mspe:27.402589797973633
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl1  
+mse:0.10273469984531403, mse:0.20624838769435883, rmse:0.3205225467681885, mape:0.3792527914047241, mspe:22.86520004272461
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl12  
+mse:0.1398308277130127, mse:0.2586320638656616, rmse:0.3739396035671234, mape:0.46210744976997375, mspe:63.02088928222656
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl24  
+mse:0.133371040225029, mse:0.2560630440711975, rmse:0.365200012922287, mape:0.455960214138031, mspe:55.62070846557617
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl72  
+mse:0.14116093516349792, mse:0.2669907510280609, rmse:0.37571391463279724, mape:0.4480786621570587, mspe:55.393646240234375
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl120  
+mse:0.14722023904323578, mse:0.27625054121017456, rmse:0.3836928904056549, mape:0.4545034170150757, mspe:55.45663833618164
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl1  
+mse:0.05548553541302681, mse:0.14993830025196075, rmse:0.23555368185043335, mape:0.31627869606018066, mspe:35.894874572753906
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl12  
+mse:0.09799901396036148, mse:0.2146485447883606, rmse:0.31304794549942017, mape:0.3995647430419922, mspe:76.95520782470703
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl24  
+mse:0.13131248950958252, mse:0.2560999095439911, rmse:0.36237064003944397, mape:0.43767064809799194, mspe:50.13175964355469
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl72  
+mse:0.15012867748737335, mse:0.28049859404563904, rmse:0.3874644339084625, mape:0.4481945335865021, mspe:67.62548828125
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl120  
+mse:0.12569928169250488, mse:0.2575252056121826, rmse:0.35454094409942627, mape:0.4287850856781006, mspe:49.05796813964844
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl1  
+mse:0.100956492125988, mse:0.2030143439769745, rmse:0.31773650646209717, mape:0.4072846472263336, mspe:50.52656173706055
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl12  
+mse:0.14498616755008698, mse:0.2513863444328308, rmse:0.3807705044746399, mape:0.4721992611885071, mspe:42.56245803833008
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl24  
+mse:0.15451955795288086, mse:0.26726531982421875, rmse:0.39308977127075195, mape:0.4528297185897827, mspe:189.79893493652344
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl72  
+mse:0.27721473574638367, mse:0.3667818605899811, rmse:0.5265118479728699, mape:0.5398331880569458, mspe:90.7781753540039
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl120  
+mse:0.18768753111362457, mse:0.30470559000968933, rmse:0.4332291781902313, mape:0.44743970036506653, mspe:62.26282501220703
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl1  
+mse:0.07386232167482376, mse:0.16264554858207703, rmse:0.2717762291431427, mape:0.37837541103363037, mspe:2.1729042530059814
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl12  
+mse:0.07373412698507309, mse:0.17090515792369843, rmse:0.2715402841567993, mape:0.2734348773956299, mspe:0.4094375967979431
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl24  
+mse:0.14550331234931946, mse:0.2613990902900696, rmse:0.3814489543437958, mape:0.5506962537765503, mspe:1.9445873498916626
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl1  
+mse:0.02280128188431263, mse:0.11169945448637009, rmse:0.15100093185901642, mape:0.3172870874404907, mspe:0.39969849586486816
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl12  
+mse:0.03057226352393627, mse:0.11620370298624039, rmse:0.1748492568731308, mape:0.2139700949192047, mspe:0.1608477383852005
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl24  
+mse:0.05259458348155022, mse:0.1686979979276657, rmse:0.22933508455753326, mape:0.3623720407485962, mspe:0.3970653712749481
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl12  
+mse:0.03810931369662285, mse:0.14141970872879028, rmse:0.1952160745859146, mape:0.3021281361579895, mspe:4.350646495819092
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl24  
+mse:0.0535152442753315, mse:0.1662863790988922, rmse:0.2313336282968521, mape:0.34020674228668213, mspe:6.0160980224609375
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl72  
+mse:0.08692146837711334, mse:0.21215030550956726, rmse:0.294824481010437, mape:0.39818838238716125, mspe:7.501177787780762
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl96_ll48_pl120  
+mse:0.10109414160251617, mse:0.23023362457752228, rmse:0.31795305013656616, mape:0.42095044255256653, mspe:9.182583808898926
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl12  
+mse:0.04853915423154831, mse:0.15802820026874542, rmse:0.22031603753566742, mape:0.33400943875312805, mspe:7.405494213104248
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl24  
+mse:0.04808308184146881, mse:0.15699945390224457, rmse:0.21927854418754578, mape:0.3309548795223236, mspe:7.754699230194092
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl72  
+mse:0.08139042556285858, mse:0.2051927000284195, rmse:0.28529006242752075, mape:0.38836631178855896, mspe:7.097379207611084
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl192_ll48_pl120  
+mse:0.09380973875522614, mse:0.22144103050231934, rmse:0.30628374218940735, mape:0.4044243097305298, mspe:11.526493072509766
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl12  
+mse:0.04598253220319748, mse:0.15338687598705292, rmse:0.2144353836774826, mape:0.31911134719848633, mspe:10.139705657958984
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl24  
+mse:0.1124451756477356, mse:0.23966529965400696, rmse:0.33532845973968506, mape:0.43449026346206665, mspe:13.585959434509277
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl72  
+mse:0.1501041203737259, mse:0.28604164719581604, rmse:0.387432724237442, mape:0.4930155873298645, mspe:18.660123825073242
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl336_ll48_pl120  
+mse:0.16671733558177948, mse:0.30321088433265686, rmse:0.4083103537559509, mape:0.5034615993499756, mspe:17.764184951782227
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl512_ll48_pl12  
+mse:0.08689159899950027, mse:0.20710605382919312, rmse:0.29477381706237793, mape:0.40378135442733765, mspe:24.241697311401367
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl512_ll48_pl24  
+mse:0.10168800503015518, mse:0.22823186218738556, rmse:0.31888556480407715, mape:0.4272443354129791, mspe:48.268287658691406
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl512_ll48_pl72  
+mse:0.1532653421163559, mse:0.28868699073791504, rmse:0.391491174697876, mape:0.4967222511768341, mspe:30.199567794799805
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl512_ll48_pl120  
+mse:0.17876353859901428, mse:0.3153630197048187, rmse:0.4228043854236603, mape:0.512481153011322, mspe:36.533721923828125
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl720_ll48_pl12  
+mse:0.03270396590232849, mse:0.14170970022678375, rmse:0.18084238469600677, mape:0.3030758798122406, mspe:0.41124725341796875
+
+wind_1hour_multi_domain_no_norm_iTransformer_Wind_multi_domain_ftMS_sl720_ll48_pl24  
+mse:0.09161996096372604, mse:0.2301241159439087, rmse:0.3026878833770752, mape:0.45319604873657227, mspe:0.44406113028526306
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl1  
+mse:0.07013759016990662, mse:0.1653427928686142, rmse:0.26483502984046936, mape:0.33901652693748474, mspe:3.111480712890625
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl12  
+mse:0.0731232762336731, mse:0.18648365139961243, rmse:0.2704131603240967, mape:0.37489256262779236, mspe:7.396926403045654
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl24  
+mse:0.09315630048513412, mse:0.21536138653755188, rmse:0.30521517992019653, mape:0.4090770483016968, mspe:12.72147274017334
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl72  
+mse:0.10893885046243668, mse:0.23446953296661377, rmse:0.33005887269973755, mape:0.43357816338539124, mspe:9.804863929748535
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl96_ll48_pl120  
+mse:0.1236322745680809, mse:0.25129857659339905, rmse:0.3516138195991516, mape:0.45305314660072327, mspe:12.458701133728027
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl1  
+mse:0.05625208467245102, mse:0.15090139210224152, rmse:0.23717522621154785, mape:0.3326622247695923, mspe:4.838503837585449
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl12  
+mse:0.09348542243242264, mse:0.214697003364563, rmse:0.3057538568973541, mape:0.4128258526325226, mspe:9.928133964538574
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl24  
+mse:0.09043654799461365, mse:0.21202705800533295, rmse:0.3007267117500305, mape:0.40545961260795593, mspe:11.483000755310059
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl72  
+mse:0.09271984547376633, mse:0.21870467066764832, rmse:0.3044993281364441, mape:0.4059463441371918, mspe:8.063336372375488
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl192_ll48_pl120  
+mse:0.11066262423992157, mse:0.24130597710609436, rmse:0.33265992999076843, mape:0.4350726008415222, mspe:12.055956840515137
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl1  
+mse:0.041500307619571686, mse:0.12275944650173187, rmse:0.2037162482738495, mape:0.269970566034317, mspe:4.607426166534424
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl12  
+mse:0.06493575125932693, mse:0.1723407357931137, rmse:0.2548249363899231, mape:0.3439362347126007, mspe:8.110511779785156
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl24  
+mse:0.10136277973651886, mse:0.22853465378284454, rmse:0.31837522983551025, mape:0.4168449640274048, mspe:15.143625259399414
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl72  
+mse:0.11828257888555527, mse:0.25546273589134216, rmse:0.34392234683036804, mape:0.45566070079803467, mspe:17.851375579833984
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl336_ll48_pl120  
+mse:0.11071458458900452, mse:0.24499519169330597, rmse:0.3327380120754242, mape:0.4378927946090698, mspe:16.05240821838379
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl1  
+mse:0.06943748891353607, mse:0.1723126918077469, rmse:0.26350992918014526, mape:0.37889015674591064, mspe:1.0437843799591064
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl12  
+mse:0.12212065607309341, mse:0.24759230017662048, rmse:0.34945765137672424, mape:0.4372062385082245, mspe:8.528494834899902
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl24  
+mse:0.13717052340507507, mse:0.2642953097820282, rmse:0.3703653812408447, mape:0.44961103796958923, mspe:27.256637573242188
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl72  
+mse:0.22802171111106873, mse:0.35343241691589355, rmse:0.47751620411872864, mape:0.5764094591140747, mspe:27.985454559326172
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl512_ll48_pl120  
+mse:0.1830751597881317, mse:0.31514474749565125, rmse:0.42787283658981323, mape:0.5182689428329468, mspe:41.31382751464844
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl1  
+mse:0.02280128002166748, mse:0.11169946938753128, rmse:0.15100093185901642, mape:0.31728705763816833, mspe:0.3996984362602234
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl12  
+mse:0.03057224489748478, mse:0.116203673183918, rmse:0.17484921216964722, mape:0.21397002041339874, mspe:0.16084764897823334
+
+wind_1hour_multi_domain_no_norm_TimeBridge_Wind_multi_domain_ftMS_sl720_ll48_pl24  
+mse:0.05259456858038902, mse:0.1686980277299881, rmse:0.22933505475521088, mape:0.3623720109462738, mspe:0.3970651924610138
+

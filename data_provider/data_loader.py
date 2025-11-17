@@ -858,8 +858,8 @@ class Dataset_wind_multi_domain(Dataset):
         for d, g in df_raw.groupby(self.domain_col, sort=False):
             # print("d:",d)  #X03
             n = len(g)
-            n_tr = int(n * 0.8)
-            n_te = int(n * 0.1)
+            n_tr = int(n * 0.7)
+            n_te = int(n * 0.2)
             n_va = n - n_tr - n_te
             # # 三段边界（域内）
             b1s = [0, n_tr - self.seq_len, n - n_te - self.seq_len]
@@ -875,15 +875,15 @@ class Dataset_wind_multi_domain(Dataset):
             b2 = b2s[self.set_type]
             b1 = max(b1, 0)
             b2 = max(b2, 0)
-            # if d == 'X03' and self.set_type == 2:
-            #     b1 = b1s[self.set_type]
-            #     b2 = b2s[self.set_type]
-            #     gi = g.iloc[b1:b2].copy()  # 当前 flag 对应的域内片段
-            #     print("b1:",b1)
-            #     print("b2:",b2)
-            #     print("gi:",len(gi))
-            # else:
-            #     gi = None
+            if d == 'X37' and self.set_type == 2:
+                b1 = b1s[self.set_type]
+                b2 = b2s[self.set_type]
+                gi = g.iloc[b1:b2].copy()  # 当前 flag 对应的域内片段
+                print("b1:",b1)
+                print("b2:",b2)
+                print("gi:",len(gi))
+            else:
+                gi = None
             # if d == 'X03':
             #     b1 = b1s[self.set_type]
             #     b2 = b2s[self.set_type]
@@ -893,11 +893,11 @@ class Dataset_wind_multi_domain(Dataset):
             #     print("gi:",len(gi))
             # else:
             #     gi = None
-            # if gi is None or gi.empty:
-            #     continue
-            gi = g.iloc[b1:b2].copy()
-            if gi.empty:
+            if gi is None or gi.empty:
                 continue
+            # gi = g.iloc[b1:b2].copy()
+            # if gi.empty:
+            #     continue
 
             # 取数值（已整体变换过的 data_all），用原始索引映射
             Xi = data_all[gi.index.values]

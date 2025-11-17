@@ -208,6 +208,14 @@ if __name__ == '__main__':
         if args.seq_len == 512:
             args.period = 16
             args.adaptive_norm = 1
+    if args.model == 'iTransformer' and 'wind' in args.data.lower():
+        adaptive_norm = 0
+        args.d_model = 512
+        args.d_ff = 512
+        args.e_layers = 8
+        args.enc_in = 17
+        args.dec_in = 17
+        args.c_out = 17
 
     if args.is_training:
         for ii in range(args.itr):

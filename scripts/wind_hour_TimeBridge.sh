@@ -9,7 +9,7 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv\
     --model_id wind_1hour_multi_domain_no_norm \
@@ -46,7 +46,7 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv\
     --model_id wind_1hour_multi_domain_no_norm \
@@ -82,7 +82,7 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv\
     --model_id wind_1hour_multi_domain_no_norm \
@@ -119,7 +119,7 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv\
     --model_id wind_1hour_multi_domain_no_norm \
@@ -155,7 +155,7 @@ for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
-    --is_training 1 \
+    --is_training 0 \
     --root_path ./dataset/Wind_data/ \
     --data_path output_hourly.csv\
     --model_id wind_1hour_multi_domain_no_norm \

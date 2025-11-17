@@ -1,16 +1,15 @@
 model_name=TimeBridge
-seq_len=192
-GPU=1
+seq_len=720
 
 
 alpha=0.35
-for pred_len in 24
+for pred_len in 1 12 24 72 120
 do
   CUDA_VISIBLE_DEVICES=$GPU \
   python -u run.py \
     --is_training 0 \
     --root_path ./dataset/Wind_data/ \
-    --data_path wind_data_c25a71168b0646d3b811ba1d553c94cc.xlsx\
+    --data_path output_hourly.csv\
     --model_id wind_1hour_multi_domain_no_norm \
     --model $model_name \
     --data Wind_multi_domain \
